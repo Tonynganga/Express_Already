@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Directions-App</string>
     <string name="title_activity_maps">Map</string>
+    <string name="API_KEY">AIzaSyBUYbVZFw5WGkIYhSRFIYAQ4bl5GKCA524</string>
 </resources>

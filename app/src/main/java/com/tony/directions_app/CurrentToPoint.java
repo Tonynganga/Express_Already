@@ -1,44 +1,37 @@
 package com.tony.directions_app;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.viewpager.widget.ViewPager;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Dialog;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.PersistableBundle;
+import android.text.Html;
 import android.util.Log;
-import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuInflater;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.view.WindowManager;
-import android.view.inputmethod.EditorInfo;
-import android.widget.Adapter;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.Toolbar;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+
+import com.firebase.geofire.GeoFire;
+import com.firebase.geofire.GeoLocation;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.internal.OnConnectionFailedListener;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.AutocompletePrediction;
@@ -54,60 +47,37 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.material.tabs.TabLayout;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.tony.directions_app.Models.PlaceInfo;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity  {
-    private ViewPager viewPager;
-    private Toolbar toolbar;
-    private TabLayout tabLayout;
-    viewPagerAdapter viewPagerAdapter;
-
-    @Override
-    protected void onCreate( Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        viewPager=findViewById(R.id.pager);
-        tabLayout=findViewById(R.id.tab_layout);
-
-        //toolbar=findViewById(R.id.toolbar);
-        // setSupportActionBar(toolbar);
-        //getSupportActionBar().setTitle("Studenta");
-
-        viewPagerAdapter=new viewPagerAdapter(getSupportFragmentManager());
-
-        tabLayout.setupWithViewPager(viewPager);
-        viewPager.setAdapter(viewPagerAdapter);
-
-    }
-
-
-    /*
+public class CurrentToPoint extends Fragment implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener {
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
+
+    public CurrentToPoint(){}
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         Log.d(TAG, "onMapReady: map is ready");
-        Toast.makeText(this, "Map is ready", Toast.LENGTH_LONG).show();
+        Toast.makeText(getActivity(), "Map is ready", Toast.LENGTH_LONG).show();
         mMap = googleMap;
         if (mLocationPermissionGranted) {
-            getDeviceLocation();
+            getDeviceLocation2();
 
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 return;
             }
             mMap.setMyLocationEnabled(true);
             mMap.getUiSettings().setMyLocationButtonEnabled(false);
             init();
-
-
 
         }
     }
@@ -125,51 +95,50 @@ public class MainActivity extends AppCompatActivity  {
     private Boolean mLocationPermissionGranted = false;
     private FusedLocationProviderClient mFusedLocationProviderClient;
 
-    private AutoCompleteTextView  mSearchText;
+    private AutoCompleteTextView mSearchText;
     private AutoCompleteTextView mSearchText2;
 
     private ImageView mGps;
     private Button btnfind;
     private PlaceAutocompleteAdapter mPlaceAutocompleteAdapter;
-    private GoogleApiClient mGoogleApiClient;
-    private PlaceInfo mPlace;
-    private TextView tvdistance;
+    private GoogleApiClient mGoogleApiClient1;
+    private PlaceInfo mPlace, mName;
+    private TextView tvdistance, tvcurrentLocation;
+    LocationManager locationManager;
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.current_to_point, container, false);
+        mSearchText = view.findViewById(R.id.edtsource);
+        mSearchText2 = view.findViewById(R.id.edtdestination);
 
-        mSearchText = findViewById(R.id.edtsource);
-        mSearchText2 = findViewById(R.id.edtdestination);
-
-        mGps = findViewById(R.id.ic_gps);
-        btnfind = findViewById(R.id.btnfind);
-        tvdistance = findViewById(R.id.distance);
+        mGps = view.findViewById(R.id.ic_gps);
+        btnfind = view.findViewById(R.id.btnfind);
+        tvdistance = view.findViewById(R.id.distance);
+        tvcurrentLocation = view.findViewById(R.id.currentlocation);
 
         getLocationPermission();
+        return  view;
     }
-
-
-
     private void init(){
         Log.d(TAG, "init: initializing");
 
         //google api client object
-        mGoogleApiClient = new GoogleApiClient
-                .Builder(this)
+        mGoogleApiClient1 = new GoogleApiClient
+                .Builder(getActivity())
                 .addApi(Places.GEO_DATA_API)
                 .addApi(Places.PLACE_DETECTION_API)
-                .enableAutoManage(this,this)
+                .enableAutoManage(getActivity(),1,this)
                 .build();
-        mSearchText.setOnItemClickListener(mAutocompleteClickListener);
+//        mSearchText.setOnItemClickListener(mAutocompleteClickListener);
         mSearchText2.setOnItemClickListener(mAutocompleteClickListener);
 
         //placeautocompleteadapter object
-        mPlaceAutocompleteAdapter = new PlaceAutocompleteAdapter(this, mGoogleApiClient,
+        mPlaceAutocompleteAdapter = new PlaceAutocompleteAdapter(getActivity(), mGoogleApiClient1,
                 LAT_LNG_BOUNDS, null);
 
         //place the autocompleteadapter in the edittext
-        mSearchText.setAdapter(mPlaceAutocompleteAdapter);
+//        mSearchText.setAdapter(mPlaceAutocompleteAdapter);
         mSearchText2.setAdapter(mPlaceAutocompleteAdapter);
 
         btnfind.setOnClickListener(new View.OnClickListener() {
@@ -185,10 +154,10 @@ public class MainActivity extends AppCompatActivity  {
             @Override
             public void onClick(View v) {
                 Log.d(TAG, "onClick: clicked gps location");
-                getDeviceLocation();
+                getDeviceLocation2();
             }
         });
-        hideSoftKeyBoard();
+        //hideSoftKeyBoard();
         /*
         mSearchText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -204,12 +173,11 @@ public class MainActivity extends AppCompatActivity  {
         });
         */
 
-    /*
     }
     @SuppressLint("SetTextI18n")
     private  void getDistance() {
         String location1 = mSearchText2.getText().toString();
-        Geocoder geocoder = new Geocoder(MainActivity.this);
+        Geocoder geocoder = new Geocoder(getActivity());
         List<Address> list = new ArrayList<>();
         try {
             list = geocoder.getFromLocationName(String.valueOf(location1), 1);
@@ -227,7 +195,7 @@ public class MainActivity extends AppCompatActivity  {
         }
 
         String location2 = mSearchText.getText().toString();
-        Geocoder geocoder1 = new Geocoder(MainActivity.this);
+        Geocoder geocoder1 = new Geocoder(getActivity());
         List<Address> list1 = new ArrayList<>();
         try {
             list1 = geocoder1.getFromLocationName(String.valueOf(location2), 1);
@@ -258,7 +226,7 @@ public class MainActivity extends AppCompatActivity  {
 
         String searchString2 = mSearchText2.getText().toString();
 
-        Geocoder geocoder = new Geocoder(MainActivity.this);
+        Geocoder geocoder = new Geocoder(getActivity());
 
         List<Address> list = new ArrayList<>();
 
@@ -287,7 +255,7 @@ public class MainActivity extends AppCompatActivity  {
         String searchString = mSearchText.getText().toString();
 
 
-        Geocoder geocoder = new Geocoder(MainActivity.this);
+        Geocoder geocoder = new Geocoder(getActivity());
         List<Address> list = new ArrayList<>();
 
         try {
@@ -307,10 +275,69 @@ public class MainActivity extends AppCompatActivity  {
 
         }
     }
-    private void getDeviceLocation(){
+    @SuppressLint("MissingPermission")
+    private void getDeviceLocation2(){
+        /*
         Log.d(TAG, "getDeviceLocation: getting devices currecnt location");
+        try {
+            if (mLocationPermissionGranted) {
+                locationManager = (LocationManager) Objects.requireNonNull(getActivity()).getSystemService(Context.LOCATION_SERVICE);
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+                        50000, 5, this);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+*/
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(getActivity());
+        try {
+            if (mLocationPermissionGranted){
+                mFusedLocationProviderClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Location> task) {
+                        Location location = task.getResult();
+                        moveCamera(new LatLng(location.getLatitude(), location.getLongitude()), DEFAULT_ZOOM, "My Location");
+                        if (location != null) {
+                            try {
+
+                            Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
+
+                                List<Address> addresses = geocoder.getFromLocation(
+                                        location.getLatitude(), location.getLongitude(), 1
+                                );
+
+                                tvcurrentLocation.setText(Html.fromHtml(
+                                        "<font color='#6200EE'><b><b></font>"
+                                                + addresses.get(0).getCountryName()
+                                                +","
+                                                + addresses.get(0).getCountryCode()
+                                                +","
+                                                + addresses.get(0).getLocality()
+                                                +","
+                                                + addresses.get(0).getSubLocality()
+                                                +","
+                                                + addresses.get(0).getAddressLine(0)
+
+                                ));
+
+                                String userID = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                                DatabaseReference userCurrentLocation = FirebaseDatabase.getInstance().getReference().child("Current Location").child("CurrentToPoint");
+
+                                GeoFire geoFire = new GeoFire(userCurrentLocation);
+                                geoFire.setLocation(userID, new GeoLocation(location.getLatitude(), location.getLongitude()));
+
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                });
+            }
+        }catch (SecurityException e){
+            Log.d(TAG, "getDeviceLocation: SecurityExcpetion" + e.getMessage());
+        }
+        /*
         try {
             if (mLocationPermissionGranted){
                 Task location = mFusedLocationProviderClient.getLastLocation();
@@ -321,10 +348,11 @@ public class MainActivity extends AppCompatActivity  {
                             Log.d(TAG, "onComplete: Found Location");
                             Location currentlocation = (Location) task.getResult();
 
+
                             moveCamera(new LatLng(currentlocation.getLatitude(), currentlocation.getLongitude()), DEFAULT_ZOOM, "My Location");
                         }else {
                             Log.d(TAG, "onComplete: Current Location Null");
-                            Toast.makeText(MainActivity.this, "Unable to get Current LOcation", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getActivity(), "Unable to get Current LOcation", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -333,7 +361,45 @@ public class MainActivity extends AppCompatActivity  {
         }catch (SecurityException e){
             Log.d(TAG, "getDeviceLocation: SecurityExcpetion" + e.getMessage());
         }
+
+ */
     }
+
+
+/*
+    @Override
+    public void onLocationChanged(@NonNull Location location) {
+        Log.d(TAG, "onLocationChanged: location latlng" + location.getLatitude() + "," + location.getLongitude());
+        Toast.makeText(getActivity(), ""+location.getLatitude()+ "," +location.getLongitude(), Toast.LENGTH_SHORT).show();
+        try {
+            Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
+            List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+
+            String addressb = addresses.get(0).getAddressLine(0);
+
+            tvcurrentLocation.setText(addressb);
+            moveCamera(new LatLng(location.getLatitude(), location.getLongitude()), DEFAULT_ZOOM, "My Location");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(@NonNull String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(@NonNull String provider) {
+
+    }
+
+ */
 
     private void moveCamera(LatLng latLng, float zoom, String title){
         Log.d(TAG, "moveCamera: moving camera to lat");
@@ -345,14 +411,14 @@ public class MainActivity extends AppCompatActivity  {
                     .title(title);
             mMap.addMarker(options);
         }
-        hideSoftKeyBoard();
+        //hideSoftKeyBoard();
 
     }
 
     private void initMap() {
         Log.d(TAG, "initMap: initializing map");
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(MainActivity.this);
+        SupportMapFragment mapFragment = (SupportMapFragment) this.getChildFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
     }
 
     private void getLocationPermission() {
@@ -360,19 +426,19 @@ public class MainActivity extends AppCompatActivity  {
         String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION};
 
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+        if (ContextCompat.checkSelfPermission(this.getActivity(),
                 FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+            if (ContextCompat.checkSelfPermission(this.getActivity(),
                     COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 mLocationPermissionGranted = true;
                 initMap();
             } else {
-                ActivityCompat.requestPermissions(this,
+                ActivityCompat.requestPermissions(getActivity(),
                         permissions,
                         LOCATION_PERMISSION_REQUEST_CODE);
             }
         } else {
-            ActivityCompat.requestPermissions(this,
+            ActivityCompat.requestPermissions(getActivity(),
                     permissions,
                     LOCATION_PERMISSION_REQUEST_CODE);
         }
@@ -403,25 +469,26 @@ public class MainActivity extends AppCompatActivity  {
 
     }
 
-    private void hideSoftKeyBoard(){
-        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+    /*private void hideSoftKeyBoard(){
+        this.getParentFragment().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
     }
+
+     */
 
     /*
             -------------------------------------------google places API autocomplte suggestions-------------------------
     */
-    /*
     private AdapterView.OnItemClickListener mAutocompleteClickListener = new AdapterView.OnItemClickListener() {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int i, long id) {
 
-            hideSoftKeyBoard();
+            //hideSoftKeyBoard();
 
             final AutocompletePrediction item =  mPlaceAutocompleteAdapter.getItem(i);
             final String placeId = item.getPlaceId();
 
             PendingResult<PlaceBuffer> placeResult = Places.GeoDataApi
-                    .getPlaceById(mGoogleApiClient, placeId);
+                    .getPlaceById(mGoogleApiClient1, placeId);
 
             placeResult.setResultCallback(mUpdatePlaceDetailsCallback);
         }
@@ -436,12 +503,12 @@ public class MainActivity extends AppCompatActivity  {
                 return;
             }
 
-            final  Place place = places.get(0);
+            final Place place = places.get(0);
 
             try {
                 mPlace = new PlaceInfo();
 
-                mPlace.setName(place.getName().toString());
+                String result = mPlace.setName(place.getName().toString());
                 mPlace.setAddress(place.getAddress().toString());
                 mPlace.setAttributions(place.getAttributions().toString());
                 mPlace.setId(place.getId());
@@ -462,6 +529,20 @@ public class MainActivity extends AppCompatActivity  {
             places.release();
         }
     };
-    */
+    @Override
+    public void onPause() {
+        super.onPause();
+        mGoogleApiClient1.stopAutoManage(getActivity());
+        mGoogleApiClient1.disconnect();
+    }
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mGoogleApiClient1 != null && mGoogleApiClient1.isConnected()) {
+            mGoogleApiClient1.stopAutoManage(getActivity());
+            mGoogleApiClient1.disconnect();
+        }
+    }
 
 }
+

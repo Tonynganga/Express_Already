@@ -27,4 +27,35 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/tab_layout"/>
+
+    <com.getbase.floatingactionbutton.FloatingActionsMenu
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        app:fab_addButtonColorNormal="@color/colorPrimary"
+        app:fab_addButtonColorPressed="@color/colorPrimary"
+        app:fab_addButtonPlusIconColor="@color/white"
+        app:fab_labelStyle="@style/custom_Fab">
+        <com.getbase.floatingactionbutton.FloatingActionButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:fab_colorNormal="@color/white"
+            app:fab_colorPressed="@color/colorPrimaryDark"
+            app:fab_size="mini"
+            android:id="@+id/fab_action1"
+            app:fab_title="LOG-OUT"
+            app:fab_icon="@drawable/ic_logout"/>
+        <com.getbase.floatingactionbutton.FloatingActionButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:fab_colorNormal="@color/white"
+            app:fab_colorPressed="@color/colorPrimaryDark"
+            app:fab_size="mini"
+            android:id="@+id/fab_action12"
+            app:fab_title="HISTORY"
+            app:fab_icon="@drawable/ic_history"/>
+    </com.getbase.floatingactionbutton.FloatingActionsMenu>
+
+
 </RelativeLayout>

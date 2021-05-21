@@ -10,6 +10,7 @@ import androidx.viewpager.widget.ViewPager;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -33,6 +34,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Toolbar;
 
+import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -55,6 +57,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.tabs.TabLayout;
+import com.google.firebase.auth.FirebaseAuth;
 import com.tony.directions_app.Models.PlaceInfo;
 
 import java.io.IOException;
@@ -66,11 +69,16 @@ public class MainActivity extends AppCompatActivity  {
     private Toolbar toolbar;
     private TabLayout tabLayout;
     viewPagerAdapter viewPagerAdapter;
+    FirebaseAuth mAuth;
+
+
 
     @Override
     protected void onCreate( Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mAuth = FirebaseAuth.getInstance();
+
 
         viewPager=findViewById(R.id.pager);
         tabLayout=findViewById(R.id.tab_layout);
@@ -81,8 +89,30 @@ public class MainActivity extends AppCompatActivity  {
 
         viewPagerAdapter=new viewPagerAdapter(getSupportFragmentManager());
 
+
         tabLayout.setupWithViewPager(viewPager);
         viewPager.setAdapter(viewPagerAdapter);
+
+        FloatingActionButton fab1 = findViewById(R.id.fab_action1);
+        fab1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mAuth.signOut();
+                Intent intent = new Intent(getApplicationContext(), LogInActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        });
+
+        FloatingActionButton fab2 = findViewById(R.id.fab_action12);
+        fab2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(MainActivity.this, "Clicked Fab 2", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+    }
 
     }
 
@@ -464,4 +494,3 @@ public class MainActivity extends AppCompatActivity  {
     };
     */
 
-}

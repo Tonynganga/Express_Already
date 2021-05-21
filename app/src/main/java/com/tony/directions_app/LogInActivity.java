@@ -18,19 +18,25 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 
-public class LogInActivity extends AppCompatActivity {
+public class LogInActivity extends AppCompatActivity implements FirebaseAuth.AuthStateListener {
 
     private EditText inputemailLogin, inputpasswordLogin;
     private Button btnLogin;
     private TextView gotoRegister, forgotPassword;
     FirebaseAuth mAuth;
+    boolean check=false;
     ProgressDialog mLoadingBar;
+
+    FirebaseAuth.AuthStateListener mAuthStateListener;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_log_in);
+
+
+
 
         inputemailLogin = findViewById(R.id.inputEmailLogin);
         inputpasswordLogin = findViewById(R.id.inputPasswordLogin);
@@ -57,10 +63,13 @@ public class LogInActivity extends AppCompatActivity {
         });
 
         btnLogin.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
-                LogIn();
-            }
+                check=true;
+                onAuthStateChanged(mAuth);
+                };
+
         });
     }
 
@@ -99,5 +108,34 @@ public class LogInActivity extends AppCompatActivity {
     private void showError(EditText field, String text) {
         field.setError(text);
         field.requestFocus();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mAuth.addAuthStateListener(this);
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mAuth.removeAuthStateListener(this);
+    }
+
+
+
+    @Override
+    public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+        if (mAuth.getCurrentUser() == null){
+            if(check)
+            LogIn();
+        }else{
+            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
+        }
+//            Toast.makeText(LogInActivity.this, mAuth.getCurrentUser().getEmail(), Toast.LENGTH_LONG).show();
     }
 }

@@ -44,16 +44,22 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.tony.directions_app.Models.PlaceInfo;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -75,7 +81,7 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
             if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 return;
             }
-            mMap.setMyLocationEnabled(true);
+            mMap.setMyLocationEnabled(false);
             mMap.getUiSettings().setMyLocationButtonEnabled(false);
             init();
 
@@ -96,7 +102,7 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
     private FusedLocationProviderClient mFusedLocationProviderClient;
 
     private AutoCompleteTextView mSearchText;
-    private AutoCompleteTextView mSearchText2;
+    private AutoCompleteTextView mSearchTextdest;
 
     private ImageView mGps;
     private Button btnfind;
@@ -105,17 +111,27 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
     private PlaceInfo mPlace, mName;
     private TextView tvdistance, tvcurrentLocation;
     LocationManager locationManager;
+    private DatabaseReference currenttopointRef, retriveCurrentRef, currenttopointdesRef, retrieveDestRef;
+    private FirebaseAuth mAuth;
+    private FirebaseUser mUser;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.current_to_point, container, false);
-        mSearchText = view.findViewById(R.id.edtsource);
-        mSearchText2 = view.findViewById(R.id.edtdestination);
+//        mSearchText = view.findViewById(R.id.edtsource);
+        mSearchTextdest = view.findViewById(R.id.edtdestinationcurrent);
 
         mGps = view.findViewById(R.id.ic_gps);
         btnfind = view.findViewById(R.id.btnfind);
         tvdistance = view.findViewById(R.id.distance);
         tvcurrentLocation = view.findViewById(R.id.currentlocation);
+
+        retriveCurrentRef = FirebaseDatabase.getInstance().getReference("Current To Point");
+        currenttopointRef = FirebaseDatabase.getInstance().getReference().child("Current To Point");
+        currenttopointdesRef = FirebaseDatabase.getInstance().getReference().child("Current To Point");
+        retrieveDestRef = FirebaseDatabase.getInstance().getReference().child("Current To Point");
+        mAuth = FirebaseAuth.getInstance();
+        mUser = mAuth.getCurrentUser();
 
         getLocationPermission();
         return  view;
@@ -131,7 +147,7 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
                 .enableAutoManage(getActivity(),1,this)
                 .build();
 //        mSearchText.setOnItemClickListener(mAutocompleteClickListener);
-        mSearchText2.setOnItemClickListener(mAutocompleteClickListener);
+        mSearchTextdest.setOnItemClickListener(mAutocompleteClickListener);
 
         //placeautocompleteadapter object
         mPlaceAutocompleteAdapter = new PlaceAutocompleteAdapter(getActivity(), mGoogleApiClient1,
@@ -139,14 +155,14 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
 
         //place the autocompleteadapter in the edittext
 //        mSearchText.setAdapter(mPlaceAutocompleteAdapter);
-        mSearchText2.setAdapter(mPlaceAutocompleteAdapter);
+        mSearchTextdest.setAdapter(mPlaceAutocompleteAdapter);
 
         btnfind.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                geoLocate();
+//                geoLocate();
                 location2();
-                getDistance();
+//                getDistance();
             }
         });
 
@@ -174,64 +190,64 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
         */
 
     }
-    @SuppressLint("SetTextI18n")
-    private  void getDistance() {
-        String location1 = mSearchText2.getText().toString();
-        Geocoder geocoder = new Geocoder(getActivity());
-        List<Address> list = new ArrayList<>();
-        try {
-            list = geocoder.getFromLocationName(String.valueOf(location1), 1);
-        } catch (IOException e) {
-            Log.e(TAG, "location2: IOException: " + e.getMessage());
-        }
-        double endLongitude = 0;
-        double endLatitude = 0;
-        if (list.size() > 0) {
-            Address address = list.get(0);
-            endLatitude = address.getLatitude();
-            endLongitude = address.getLongitude();
-
-            Log.d(TAG, "geoLocate: found a location: " + address.toString());
-        }
-
-        String location2 = mSearchText.getText().toString();
-        Geocoder geocoder1 = new Geocoder(getActivity());
-        List<Address> list1 = new ArrayList<>();
-        try {
-            list1 = geocoder1.getFromLocationName(String.valueOf(location2), 1);
-        } catch (IOException e) {
-            Log.e(TAG, "getDistance: location3" + e.getMessage());
-        }
-        double startLatitude = 0;
-        double startLongitude = 0;
-        if (list1.size() > 0) {
-            Address address1 = list1.get(0);
-            startLatitude = address1.getLatitude();
-            startLongitude = address1.getLongitude();
-            Log.d(TAG, "getDistance: found another location");
-        }
-
-
-        float[] distanceresults = new float[1];
-        Location.distanceBetween(startLatitude, startLongitude, endLatitude, endLongitude, distanceresults);
-        float distance = distanceresults[0];
-
-        int kilometre = (int) (distance / 1000);
-        tvdistance.setText(kilometre + " km");
-
-    }
+//    @SuppressLint("SetTextI18n")
+//    private  void getDistance() {
+//        String location1 = mSearchText2.getText().toString();
+//        Geocoder geocoder = new Geocoder(getActivity());
+//        List<Address> list = new ArrayList<>();
+//        try {
+//            list = geocoder.getFromLocationName(String.valueOf(location1), 1);
+//        } catch (IOException e) {
+//            Log.e(TAG, "location2: IOException: " + e.getMessage());
+//        }
+//        double endLongitude = 0;
+//        double endLatitude = 0;
+//        if (list.size() > 0) {
+//            Address address = list.get(0);
+//            endLatitude = address.getLatitude();
+//            endLongitude = address.getLongitude();
+//
+//            Log.d(TAG, "geoLocate: found a location: " + address.toString());
+//        }
+//
+//        String location2 = mSearchText.getText().toString();
+//        Geocoder geocoder1 = new Geocoder(getActivity());
+//        List<Address> list1 = new ArrayList<>();
+//        try {
+//            list1 = geocoder1.getFromLocationName(String.valueOf(location2), 1);
+//        } catch (IOException e) {
+//            Log.e(TAG, "getDistance: location3" + e.getMessage());
+//        }
+//        double startLatitude = 0;
+//        double startLongitude = 0;
+//        if (list1.size() > 0) {
+//            Address address1 = list1.get(0);
+//            startLatitude = address1.getLatitude();
+//            startLongitude = address1.getLongitude();
+//            Log.d(TAG, "getDistance: found another location");
+//        }
+//
+//
+//        float[] distanceresults = new float[1];
+//        Location.distanceBetween(startLatitude, startLongitude, endLatitude, endLongitude, distanceresults);
+//        float distance = distanceresults[0];
+//
+//        int kilometre = (int) (distance / 1000);
+//        tvdistance.setText(kilometre + " km");
+//
+//    }
 
     private void location2(){
         Log.d(TAG, "location2:  seraching location 2");
 
-        String searchString2 = mSearchText2.getText().toString();
+        String searchStringdestination = mSearchTextdest.getText().toString();
 
         Geocoder geocoder = new Geocoder(getActivity());
 
         List<Address> list = new ArrayList<>();
 
         try {
-            list = geocoder.getFromLocationName(searchString2, 1);
+            list = geocoder.getFromLocationName(searchStringdestination, 1);
         }catch (IOException e){
             Log.e(TAG, "location2: IOException: " + e.getMessage() );
         }
@@ -240,56 +256,99 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
 
             Log.d(TAG, "geoLocate: found a location: " + address.toString());
 
-            moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), DEFAULT_ZOOM,
-                    address.getAddressLine(0));
+//            moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), DEFAULT_ZOOM,
+//                    address.getAddressLine(0));
 
-            ;
+            HashMap destinationLocationHashMap = new HashMap();
+            destinationLocationHashMap.put("Destination Name", searchStringdestination);
+            destinationLocationHashMap.put("Country", address.getCountryName());
+            destinationLocationHashMap.put("Locality", address.getLocality());
+
+
+            currenttopointdesRef.child(mUser.getUid()).child("Destination").updateChildren(destinationLocationHashMap).addOnCompleteListener(new OnCompleteListener() {
+                @Override
+                public void onComplete(@NonNull Task task) {
+                    HashMap destinationcoordinates = new HashMap();
+                    destinationcoordinates.put("lat", address.getLatitude());
+                    destinationcoordinates.put("lng", address.getLongitude());
+
+                    currenttopointRef.child(mUser.getUid()).child("Destination").child("Coordinates").updateChildren(destinationcoordinates).addOnCompleteListener(new OnCompleteListener() {
+                        @Override
+                        public void onComplete(@NonNull Task task) {
+
+                        }
+                    });
+//
+                }
+            });
+
+            retrieveDestRef.child(mUser.getUid()).child("Destination").addValueEventListener(new ValueEventListener() {
+
+                private Marker mMydestMarker;
+
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        Double destlatitude = snapshot.child("Coordinates").child("lat").getValue(Double.class);
+                        Double deslongitude = snapshot.child("Coordinates").child("lng").getValue(Double.class);
+                        String destname = snapshot.child("Destination Name").getValue().toString();
+
+                        LatLng destlocation = new LatLng(destlatitude, deslongitude);
+
+                        MarkerOptions userMarker1 = new MarkerOptions().position(destlocation).title(destname);
+                        if(mMydestMarker!=null){
+                            mMydestMarker.remove();
+                        }
+                        mMydestMarker = mMap.addMarker(userMarker1);
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(destlocation, DEFAULT_ZOOM));
+
+
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                }
+            });
+
+
+
+
 
         }
 
     }
 
-    private  void geoLocate(){
-        Log.d(TAG, "geoLocate: geolocating");
-
-        String searchString = mSearchText.getText().toString();
-
-
-        Geocoder geocoder = new Geocoder(getActivity());
-        List<Address> list = new ArrayList<>();
-
-        try {
-            list = geocoder.getFromLocationName(searchString, 1);
-
-        }catch (IOException e){
-            Log.e(TAG, "geoLocate: IOException: " + e.getMessage() );
-        }
-
-        if (list.size() > 0){
-            Address address = list.get(0);
-
-            Log.d(TAG, "geoLocate: found a location: " + address.toString());
-
-            moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), DEFAULT_ZOOM,
-                    address.getAddressLine(0));
-
-        }
-    }
+//    private  void geoLocate(){
+//        Log.d(TAG, "geoLocate: geolocating");
+//
+//        String searchString = mSearchText.getText().toString();
+//
+//
+//        Geocoder geocoder = new Geocoder(getActivity());
+//        List<Address> list = new ArrayList<>();
+//
+//        try {
+//            list = geocoder.getFromLocationName(searchString, 1);
+//
+//        }catch (IOException e){
+//            Log.e(TAG, "geoLocate: IOException: " + e.getMessage() );
+//        }
+//
+//        if (list.size() > 0){
+//            Address address = list.get(0);
+//
+//            Log.d(TAG, "geoLocate: found a location: " + address.toString());
+//
+//            moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), DEFAULT_ZOOM,
+//                    address.getAddressLine(0));
+//
+//        }
+//    }
     @SuppressLint("MissingPermission")
     private void getDeviceLocation2(){
-        /*
-        Log.d(TAG, "getDeviceLocation: getting devices currecnt location");
-        try {
-            if (mLocationPermissionGranted) {
-                locationManager = (LocationManager) Objects.requireNonNull(getActivity()).getSystemService(Context.LOCATION_SERVICE);
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-                        50000, 5, this);
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }
 
-*/
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(getActivity());
         try {
             if (mLocationPermissionGranted){
@@ -297,9 +356,11 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
                     @Override
                     public void onComplete(@NonNull Task<Location> task) {
                         Location location = task.getResult();
-                        moveCamera(new LatLng(location.getLatitude(), location.getLongitude()), DEFAULT_ZOOM, "My Location");
+
                         if (location != null) {
+
                             try {
+//                                moveCamera(new LatLng(location.getLatitude(), location.getLongitude()), DEFAULT_ZOOM, "My Location");
 
                             Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
 
@@ -320,12 +381,63 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
                                                 + addresses.get(0).getAddressLine(0)
 
                                 ));
+                                HashMap currentLocationHashMap = new HashMap();
+                                currentLocationHashMap.put("Current Location Name", addresses.get(0).getLocality());
+                                currentLocationHashMap.put("Country", addresses.get(0).getCountryName());
+                                currentLocationHashMap.put("Locality", addresses.get(0).getAdminArea());
 
-                                String userID = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                                DatabaseReference userCurrentLocation = FirebaseDatabase.getInstance().getReference().child("Current Location").child("CurrentToPoint");
 
-                                GeoFire geoFire = new GeoFire(userCurrentLocation);
-                                geoFire.setLocation(userID, new GeoLocation(location.getLatitude(), location.getLongitude()));
+                                currenttopointRef.child(mUser.getUid()).child("Current Location").updateChildren(currentLocationHashMap).addOnCompleteListener(new OnCompleteListener() {
+                                    @Override
+                                    public void onComplete(@NonNull Task task) {
+                                        HashMap currentecoordinates = new HashMap();
+                                        currentecoordinates.put("lat", addresses.get(0).getLatitude());
+                                        currentecoordinates.put("lng", addresses.get(0).getLongitude());
+
+                                        currenttopointRef.child(mUser.getUid()).child("Current Location").child("Coordinates").updateChildren(currentecoordinates).addOnCompleteListener(new OnCompleteListener() {
+                                            @Override
+                                            public void onComplete(@NonNull Task task) {
+
+                                            }
+                                        });
+//
+                                    }
+                                });
+                                retriveCurrentRef.child(mUser.getUid()).child("Current Location").addValueEventListener(new ValueEventListener() {
+
+                                    private Marker mMyCurrentMarker;
+
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                        if (snapshot.exists()) {
+                                            Double latitudecurrent = snapshot.child("Coordinates").child("lat").getValue(Double.class);
+                                            Double longitudecurrent = snapshot.child("Coordinates").child("lng").getValue(Double.class);
+                                            //String name = snapshot.child("Destination Name").getValue().toString();
+
+                                            LatLng currentLocation = new LatLng(latitudecurrent, longitudecurrent);
+
+                                            MarkerOptions userMarker = new MarkerOptions().position(currentLocation).title("Current Location");
+                                            if (mMyCurrentMarker != null){
+                                                mMyCurrentMarker.remove();
+                                            }
+                                            mMyCurrentMarker = mMap.addMarker(userMarker);
+                                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, DEFAULT_ZOOM));
+
+
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+
+                                    }
+                                });
+
+//                                String userID = FirebaseAuth.getInstance().getCurrentUser().getUid();
+//                                DatabaseReference userCurrentLocation = FirebaseDatabase.getInstance().getReference().child("Current Location").child("CurrentToPoint");
+//
+//                                GeoFire geoFire = new GeoFire(userCurrentLocation);
+//                                geoFire.setLocation(userID, new GeoLocation(location.getLatitude(), location.getLongitude()));
 
                             } catch (IOException e) {
                                 e.printStackTrace();

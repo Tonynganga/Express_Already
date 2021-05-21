@@ -84,6 +84,8 @@
 
     </RelativeLayout>
 
+
+
     <ImageView
         android:id="@+id/ic_gps"
         android:layout_width="35dp"
@@ -117,12 +119,14 @@
         android:gravity="center_vertical"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="0dp"
-        android:layout_marginLeft="40dp"
-        android:layout_marginRight="40dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="170dp"
         android:textSize="18sp"
         android:textColor="@color/black"
         android:background="@drawable/input_comment_bg"
         android:text="Distance..Km."
         tools:ignore="RtlCompat" />
+
+
 
 </RelativeLayout>

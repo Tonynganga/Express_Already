@@ -44,16 +44,22 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.tony.directions_app.Models.PlaceInfo;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -100,6 +106,10 @@ public class PointToPoint extends Fragment implements OnMapReadyCallback, Google
 
     private AutoCompleteTextView mSearchText;
     private AutoCompleteTextView mSearchText2;
+    private  DatabaseReference pointtopointRef;
+    private  DatabaseReference retriveDestinationRef, retriveSourceRef;
+    private FirebaseAuth mAuth;
+    private FirebaseUser mUser;
 
     private ImageView mGps;
     private Button btnfind;
@@ -118,6 +128,13 @@ public class PointToPoint extends Fragment implements OnMapReadyCallback, Google
         btnfind = view.findViewById(R.id.btnfind);
         tvdistance = view.findViewById(R.id.distance);
 
+        retriveDestinationRef = FirebaseDatabase.getInstance().getReference("Location To Location");
+        pointtopointRef = FirebaseDatabase.getInstance().getReference().child("Location To Location");
+        retriveSourceRef = FirebaseDatabase.getInstance().getReference("Location To Location");
+
+
+        mAuth = FirebaseAuth.getInstance();
+        mUser = mAuth.getCurrentUser();
         getLocationPermission();
         return  view;
     }
@@ -241,14 +258,81 @@ public class PointToPoint extends Fragment implements OnMapReadyCallback, Google
 
             Log.d(TAG, "geoLocate: found a location: " + address.toString());
 
-            moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), DEFAULT_ZOOM,
-                    address.getAddressLine(0));
+//            moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), DEFAULT_ZOOM,
+//                    address.getAddressLine(0));
 
-            ;
+            HashMap destinationHashMap = new HashMap();
+            destinationHashMap.put("Destination Name", searchString2);
+            destinationHashMap.put("Locality", address.getLocality());
+            destinationHashMap.put("Country", address.getCountryName());
+
+
+            pointtopointRef.child(mUser.getUid()).child("Destination").updateChildren(destinationHashMap).addOnCompleteListener(new OnCompleteListener() {
+                @Override
+                public void onComplete(@NonNull Task task) {
+                    HashMap descoordinates = new HashMap();
+                    descoordinates.put("lat", address.getLatitude());
+                    descoordinates.put("lng", address.getLongitude());
+
+                    pointtopointRef.child(mUser.getUid()).child("Destination").child("Coordinates").updateChildren(descoordinates).addOnCompleteListener(new OnCompleteListener() {
+                        @Override
+                        public void onComplete(@NonNull Task task) {
+
+                        }
+                    });
+//                    DatabaseReference pointtopointdestination = pointtopointSourceRef.child(mUser.getUid()).child("Coordinates");
+//
+//                    GeoFire geoFire = new GeoFire(pointtopointdestination);
+//                    geoFire.setLocation(mUser.getUid(),new GeoLocation(address.getLatitude(), address.getLongitude()));
+                }
+            });
+
+
+
 
         }
+        retriveDestinationRef.child(mUser.getUid()).child("Destination").addValueEventListener(new ValueEventListener() {
 
-    }
+            private Marker mMyMarker;
+
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    Double latitude = snapshot.child("Coordinates").child("lat").getValue(Double.class);
+                    Double longitude = snapshot.child("Coordinates").child("lng").getValue(Double.class);
+                    String name = snapshot.child("Destination Name").getValue().toString();
+
+                    LatLng location2 = new LatLng(latitude, longitude);
+
+                    MarkerOptions userMarker = new MarkerOptions().position(location2).title(name);
+                    if(mMyMarker!=null){
+                        mMyMarker.remove();
+                    }
+                    mMyMarker = mMap.addMarker(userMarker);
+
+
+
+
+//                    Marker myMarker = null;
+//                  userMarker = new MarkerOptions().position(location2).title("Location");
+
+
+
+                    //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location2, DEFAULT_ZOOM));
+//                  myMarker.remove();
+
+//                   mMap.addMarker(new MarkerOptions().position(location2).title("Marker in C"));
+//                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location2, DEFAULT_ZOOM));
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+
+       }
 
     private  void geoLocate(){
         Log.d(TAG, "geoLocate: geolocating");
@@ -271,8 +355,76 @@ public class PointToPoint extends Fragment implements OnMapReadyCallback, Google
 
             Log.d(TAG, "geoLocate: found a location: " + address.toString());
 
-            moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), DEFAULT_ZOOM,
-                    address.getAddressLine(0));
+//            moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), DEFAULT_ZOOM,
+//                    address.getAddressLine(0));
+
+            HashMap sourceHashMap = new HashMap();
+            sourceHashMap.put("Source Name", searchString);
+            sourceHashMap.put("Locality", address.getLocality());
+            sourceHashMap.put("Country", address.getCountryName());
+
+
+            pointtopointRef.child(mUser.getUid()).child("Source").updateChildren(sourceHashMap).addOnCompleteListener(new OnCompleteListener() {
+                @Override
+                public void onComplete(@NonNull Task task) {
+                    HashMap sourcecoordinates = new HashMap();
+                    sourcecoordinates.put("lat", address.getLatitude());
+                    sourcecoordinates.put("lng", address.getLongitude());
+
+                    pointtopointRef.child(mUser.getUid()).child("Source").child("Coordinates").updateChildren(sourcecoordinates).addOnCompleteListener(new OnCompleteListener() {
+                        @Override
+                        public void onComplete(@NonNull Task task) {
+
+                        }
+                    });
+//                    DatabaseReference pointtopointdestination = pointtopointSourceRef.child(mUser.getUid()).child("Coordinates");
+//
+//                    GeoFire geoFire = new GeoFire(pointtopointdestination);
+//                    geoFire.setLocation(mUser.getUid(),new GeoLocation(address.getLatitude(), address.getLongitude()));
+                }
+            });
+
+            retriveSourceRef.child(mUser.getUid()).child("Source").addValueEventListener(new ValueEventListener() {
+
+                private Marker mMyFirstMarker;
+
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        Double latitude1 = snapshot.child("Coordinates").child("lat").getValue(Double.class);
+                        Double longitude1 = snapshot.child("Coordinates").child("lng").getValue(Double.class);
+                        String name1 = snapshot.child("Source Name").getValue().toString();
+
+                        LatLng location2 = new LatLng(latitude1, longitude1);
+
+                        MarkerOptions userMarker1 = new MarkerOptions().position(location2).title(name1);
+                        if(mMyFirstMarker!=null){
+                            mMyFirstMarker.remove();
+                        }
+                        mMyFirstMarker = mMap.addMarker(userMarker1);
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location2, DEFAULT_ZOOM));
+
+
+
+
+//                    Marker myMarker = null;
+//                  userMarker = new MarkerOptions().position(location2).title("Location");
+
+
+
+//                  myMarker.remove();
+
+//                   mMap.addMarker(new MarkerOptions().position(location2).title("Marker in C"));
+//                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location2, DEFAULT_ZOOM));
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                }
+            });
+
 
         }
     }
@@ -298,11 +450,11 @@ public class PointToPoint extends Fragment implements OnMapReadyCallback, Google
                                         location.getLatitude(), location.getLongitude(), 1
                                 );
 
-                                String userID = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                                DatabaseReference userCurrentLocationpoint = FirebaseDatabase.getInstance().getReference().child("Current Location").child("PointToPoint");
-
-                                GeoFire geoFire = new GeoFire(userCurrentLocationpoint);
-                                geoFire.setLocation(userID, new GeoLocation(location.getLatitude(), location.getLongitude()));
+//                                String userID = FirebaseAuth.getInstance().getCurrentUser().getUid();
+//                                DatabaseReference userCurrentLocationpoint = FirebaseDatabase.getInstance().getReference().child("Current Location");
+//
+//                                GeoFire geoFire = new GeoFire(userCurrentLocationpoint);
+//                                geoFire.setLocation(userID, new GeoLocation(location.getLatitude(), location.getLongitude()));
 
                             } catch (IOException e) {
                                 e.printStackTrace();

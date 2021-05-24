@@ -64,6 +64,10 @@ import java.util.List;
 import java.util.Locale;
 
 public class CurrentToPoint extends Fragment implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener {
+
+    private double startLatitude;
+    private double startLongitude;
+
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
@@ -109,7 +113,7 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
     private PlaceAutocompleteAdapter mPlaceAutocompleteAdapter;
     private GoogleApiClient mGoogleApiClient1;
     private PlaceInfo mPlace, mName;
-    private TextView tvdistance, tvcurrentLocation;
+    private TextView currentDistance, tvcurrentLocation;
     LocationManager locationManager;
     private DatabaseReference currenttopointRef, retriveCurrentRef, currenttopointdesRef, retrieveDestRef;
     private FirebaseAuth mAuth;
@@ -123,7 +127,7 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
 
         mGps = view.findViewById(R.id.ic_gps);
         btnfind = view.findViewById(R.id.btnfind);
-        tvdistance = view.findViewById(R.id.distance);
+        currentDistance = view.findViewById(R.id.currentDistance);
         tvcurrentLocation = view.findViewById(R.id.currentlocation);
 
         retriveCurrentRef = FirebaseDatabase.getInstance().getReference("Current To Point");
@@ -190,52 +194,71 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
         */
 
     }
-//    @SuppressLint("SetTextI18n")
-//    private  void getDistance() {
-//        String location1 = mSearchText2.getText().toString();
-//        Geocoder geocoder = new Geocoder(getActivity());
-//        List<Address> list = new ArrayList<>();
-//        try {
-//            list = geocoder.getFromLocationName(String.valueOf(location1), 1);
-//        } catch (IOException e) {
-//            Log.e(TAG, "location2: IOException: " + e.getMessage());
-//        }
-//        double endLongitude = 0;
-//        double endLatitude = 0;
-//        if (list.size() > 0) {
-//            Address address = list.get(0);
-//            endLatitude = address.getLatitude();
-//            endLongitude = address.getLongitude();
-//
-//            Log.d(TAG, "geoLocate: found a location: " + address.toString());
-//        }
-//
-//        String location2 = mSearchText.getText().toString();
-//        Geocoder geocoder1 = new Geocoder(getActivity());
-//        List<Address> list1 = new ArrayList<>();
-//        try {
-//            list1 = geocoder1.getFromLocationName(String.valueOf(location2), 1);
-//        } catch (IOException e) {
-//            Log.e(TAG, "getDistance: location3" + e.getMessage());
-//        }
-//        double startLatitude = 0;
-//        double startLongitude = 0;
-//        if (list1.size() > 0) {
-//            Address address1 = list1.get(0);
-//            startLatitude = address1.getLatitude();
-//            startLongitude = address1.getLongitude();
-//            Log.d(TAG, "getDistance: found another location");
-//        }
-//
-//
-//        float[] distanceresults = new float[1];
-//        Location.distanceBetween(startLatitude, startLongitude, endLatitude, endLongitude, distanceresults);
-//        float distance = distanceresults[0];
-//
-//        int kilometre = (int) (distance / 1000);
-//        tvdistance.setText(kilometre + " km");
-//
-//    }
+    @SuppressLint("SetTextI18n")
+    private  void getDistance() {
+        String location2distance = mSearchTextdest.getText().toString();
+        Geocoder geocoder1 = new Geocoder(getActivity());
+        List<Address> loc1distancelist = new ArrayList<>();
+        try {
+            loc1distancelist = geocoder1.getFromLocationName(String.valueOf(location2distance), 1);
+        } catch (IOException e) {
+            Log.e(TAG, "getDistance: location3" + e.getMessage());
+        }
+        double endLatitude = 0;
+        double endLongitude = 0;
+        if (loc1distancelist.size() > 0) {
+            Address distanceaddress = loc1distancelist.get(0);
+            endLatitude = distanceaddress.getLatitude();
+            endLongitude = distanceaddress.getLongitude();
+            Log.d(TAG, "getDistance: found another location");
+        }
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(getActivity());
+        try {
+            if (mLocationPermissionGranted){
+                mFusedLocationProviderClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Location> task) {
+                        Location location = task.getResult();
+                        if (location != null) {
+
+                            try {
+//                                moveCamera(new LatLng(location.getLatitude(), location.getLongitude()), DEFAULT_ZOOM, "My Location");
+
+                                Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
+
+                                List<Address> addresses = geocoder.getFromLocation(
+                                        location.getLatitude(), location.getLongitude(), 1
+                                );
+
+                                startLatitude = addresses.get(0).getLatitude();
+                                startLongitude = addresses.get(0).getLongitude();
+
+
+
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                });
+            }
+        }catch (SecurityException e){
+            Log.d(TAG, "getDeviceLocation: SecurityExcpetion" + e.getMessage());
+        }
+
+
+        float[] distanceresults = new float[1];
+
+        Location.distanceBetween(startLatitude, startLongitude, endLatitude, endLongitude, distanceresults);
+        float distance = distanceresults[0];
+
+        int kilometre = (int) (distance / 1000);
+        currentDistance.setText(kilometre + " km");
+
+    }
+
+
+
 
     private void location2(){
         Log.d(TAG, "location2:  seraching location 2");
@@ -336,7 +359,6 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
 //            Log.e(TAG, "geoLocate: IOException: " + e.getMessage() );
 //        }
 //
-//        if (list.size() > 0){
 //            Address address = list.get(0);
 //
 //            Log.d(TAG, "geoLocate: found a location: " + address.toString());

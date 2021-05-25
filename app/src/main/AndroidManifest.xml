@@ -23,19 +23,24 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBUYbVZFw5WGkIYhSRFIYAQ4bl5GKCA524" />
+        <meta-data
+            android:name="preloaded_fonts"
+            android:resource="@array/preloaded_fonts" />
 
         <activity android:name=".RegisterActivity">
 
         </activity>
         <activity android:name=".LogInActivity" >
+
+
+        </activity>
+        <activity android:name=".SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
-        <activity android:name=".SplashActivity"></activity>
         <activity android:name=".MainActivity" >
 
         </activity>

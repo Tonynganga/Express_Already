@@ -26,8 +26,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
-import com.firebase.geofire.GeoFire;
-import com.firebase.geofire.GeoLocation;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -64,6 +62,7 @@ import java.util.List;
 import java.util.Locale;
 
 public class CurrentToPoint extends Fragment implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener {
+
 
     private double startLatitude;
     private double startLongitude;
@@ -118,6 +117,7 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
     private DatabaseReference currenttopointRef, retriveCurrentRef, currenttopointdesRef, retrieveDestRef;
     private FirebaseAuth mAuth;
     private FirebaseUser mUser;
+    Marker mMyCurrentLocMarker, myDestinationMarker;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -140,7 +140,7 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
         getLocationPermission();
         return  view;
     }
-    private void init(){
+    private void init() {
         Log.d(TAG, "init: initializing");
 
         //google api client object
@@ -148,7 +148,7 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
                 .Builder(getActivity())
                 .addApi(Places.GEO_DATA_API)
                 .addApi(Places.PLACE_DETECTION_API)
-                .enableAutoManage(getActivity(),1,this)
+                .enableAutoManage(getActivity(), 1, this)
                 .build();
 //        mSearchText.setOnItemClickListener(mAutocompleteClickListener);
         mSearchTextdest.setOnItemClickListener(mAutocompleteClickListener);
@@ -166,7 +166,7 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
             public void onClick(View v) {
 //                geoLocate();
                 location2();
-//                getDistance();
+               getDistance();
             }
         });
 
@@ -192,8 +192,9 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
             }
         });
         */
-
     }
+
+//    }
     @SuppressLint("SetTextI18n")
     private  void getDistance() {
         String location2distance = mSearchTextdest.getText().toString();
@@ -261,7 +262,7 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
 
 
     private void location2(){
-        Log.d(TAG, "location2:  seraching location 2");
+
 
         String searchStringdestination = mSearchTextdest.getText().toString();
 
@@ -274,66 +275,107 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
         }catch (IOException e){
             Log.e(TAG, "location2: IOException: " + e.getMessage() );
         }
-        if (list.size() > 0){
-            Address address = list.get(0);
+        if (list.size() > 0) {
+            Address addressdestination = list.get(0);
+            Log.d(TAG, "geoLocate: found a location: " + addressdestination.toString());
 
-            Log.d(TAG, "geoLocate: found a location: " + address.toString());
+            HashMap CurrentToPointHashMap = new HashMap();
+            CurrentToPointHashMap.put("CDestinationlat", addressdestination.getLatitude());
+            CurrentToPointHashMap.put("CDestinationlng", addressdestination.getLongitude());
+            CurrentToPointHashMap.put("CDestinationName", searchStringdestination);
+            CurrentToPointHashMap.put("CDestinationCountry", addressdestination.getCountryName());
+            CurrentToPointHashMap.put("CDestinationLocality", addressdestination.getLocality());
 
-//            moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), DEFAULT_ZOOM,
-//                    address.getAddressLine(0));
-
-            HashMap destinationLocationHashMap = new HashMap();
-            destinationLocationHashMap.put("Destination Name", searchStringdestination);
-            destinationLocationHashMap.put("Country", address.getCountryName());
-            destinationLocationHashMap.put("Locality", address.getLocality());
-
-
-            currenttopointdesRef.child(mUser.getUid()).child("Destination").updateChildren(destinationLocationHashMap).addOnCompleteListener(new OnCompleteListener() {
-                @Override
-                public void onComplete(@NonNull Task task) {
-                    HashMap destinationcoordinates = new HashMap();
-                    destinationcoordinates.put("lat", address.getLatitude());
-                    destinationcoordinates.put("lng", address.getLongitude());
-
-                    currenttopointRef.child(mUser.getUid()).child("Destination").child("Coordinates").updateChildren(destinationcoordinates).addOnCompleteListener(new OnCompleteListener() {
+            mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(getActivity());
+            try {
+                if (mLocationPermissionGranted){
+                    mFusedLocationProviderClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
                         @Override
-                        public void onComplete(@NonNull Task task) {
+                        public void onComplete(@NonNull Task<Location> task) {
+                            Location location = task.getResult();
+                            if (location != null) {
+                                try {
+                                    // moveCamera(new LatLng(location.getLatitude(), location.getLongitude()), DEFAULT_ZOOM, "My Location");
 
+                                    Geocoder geocodercurrentLoc = new Geocoder(getActivity(), Locale.getDefault());
+
+                                    List<Address> addresses = geocodercurrentLoc.getFromLocation(
+                                            location.getLatitude(), location.getLongitude(), 1
+                                    );
+
+                                    tvcurrentLocation.setText(Html.fromHtml(
+                                            "<font color='#6200EE'><b><b></font>"
+                                                    + addresses.get(0).getCountryName()
+                                                    +","
+                                                    + addresses.get(0).getCountryCode()
+                                                    +","
+                                                    + addresses.get(0).getLocality()
+                                                    +","
+                                                    + addresses.get(0).getSubLocality()
+                                                    +","
+                                                    + addresses.get(0).getAddressLine(0)
+
+                                    ));
+
+                                    CurrentToPointHashMap.put("CCurrentLocation Name", addresses.get(0).getLocality());
+                                    CurrentToPointHashMap.put("CCurrentCountry", addresses.get(0).getCountryName());
+                                    CurrentToPointHashMap.put("CCurrentLocality", addresses.get(0).getAdminArea());
+                                    CurrentToPointHashMap.put("CCurrentlat", addresses.get(0).getLatitude());
+                                    CurrentToPointHashMap.put("CCurrentlng", addresses.get(0).getLongitude());
+
+                                    currenttopointRef.child(mUser.getUid()).push().setValue(CurrentToPointHashMap).addOnCompleteListener(new OnCompleteListener() {
+                                        @Override
+                                        public void onComplete(@NonNull Task task) {
+                                            retriveCurrentRef.child(mUser.getUid()).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<DataSnapshot> task) {
+                                                    if (task.isSuccessful()){
+                                                        for(DataSnapshot snapshot: task.getResult().getChildren()){
+                                                            Double currentLatitude = snapshot.child("CCurrentlat").getValue(Double.class);
+                                                            Double currentLongitude = snapshot.child("CCurrentlng").getValue(Double.class);
+                                                            String currentName = snapshot.child("CCurrentLocality").getValue().toString();
+                                                            Double destinationLatitude = snapshot.child("CDestinationlat").getValue(Double.class);
+                                                            Double destinationLongitude = snapshot.child("CDestinationlng").getValue(Double.class);
+                                                            String destinationName = snapshot.child("CDestinationName").getValue().toString();
+
+                                                            LatLng currentLocation = new LatLng(currentLatitude, currentLongitude);
+                                                            LatLng destinationLocation = new LatLng(destinationLatitude, destinationLongitude);
+
+                                                            if (myDestinationMarker != null) {
+                                                                myDestinationMarker.remove();
+                                                            }
+                                                            if (mMyCurrentLocMarker != null) {
+                                                                mMyCurrentLocMarker.remove();
+                                                            }
+
+                                                            MarkerOptions userMarker3 = new MarkerOptions().position(currentLocation).title("Current Location " + currentName);
+                                                            mMyCurrentLocMarker = mMap.addMarker(userMarker3);
+                                                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, DEFAULT_ZOOM));
+
+                                                            MarkerOptions userMarker4 = new MarkerOptions().position(destinationLocation).title(destinationName);
+                                                            myDestinationMarker = mMap.addMarker(userMarker4);
+                                                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(destinationLocation, DEFAULT_ZOOM));
+
+                                                        }
+                                                    }
+                                                }
+
+                                            });
+
+                                        }
+                                    });
+
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
                         }
                     });
-//
                 }
-            });
-
-            retrieveDestRef.child(mUser.getUid()).child("Destination").addValueEventListener(new ValueEventListener() {
-
-                private Marker mMydestMarker;
-
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    if (snapshot.exists()) {
-                        Double destlatitude = snapshot.child("Coordinates").child("lat").getValue(Double.class);
-                        Double deslongitude = snapshot.child("Coordinates").child("lng").getValue(Double.class);
-                        String destname = snapshot.child("Destination Name").getValue().toString();
-
-                        LatLng destlocation = new LatLng(destlatitude, deslongitude);
-
-                        MarkerOptions userMarker1 = new MarkerOptions().position(destlocation).title(destname);
-                        if(mMydestMarker!=null){
-                            mMydestMarker.remove();
-                        }
-                        mMydestMarker = mMap.addMarker(userMarker1);
-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(destlocation, DEFAULT_ZOOM));
-
-
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-
-                }
-            });
+            }catch (SecurityException e){
+                Log.d(TAG, "getDeviceLocation: SecurityExcpetion" + e.getMessage());
+            }
+        }
 
 
 
@@ -341,33 +383,9 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
 
         }
 
-    }
 
-//    private  void geoLocate(){
-//        Log.d(TAG, "geoLocate: geolocating");
-//
-//        String searchString = mSearchText.getText().toString();
-//
-//
-//        Geocoder geocoder = new Geocoder(getActivity());
-//        List<Address> list = new ArrayList<>();
-//
-//        try {
-//            list = geocoder.getFromLocationName(searchString, 1);
-//
-//        }catch (IOException e){
-//            Log.e(TAG, "geoLocate: IOException: " + e.getMessage() );
-//        }
-//
-//            Address address = list.get(0);
-//
-//            Log.d(TAG, "geoLocate: found a location: " + address.toString());
-//
-//            moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), DEFAULT_ZOOM,
-//                    address.getAddressLine(0));
-//
-//        }
-//    }
+
+
     @SuppressLint("MissingPermission")
     private void getDeviceLocation2(){
 
@@ -382,7 +400,7 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
                         if (location != null) {
 
                             try {
-//                                moveCamera(new LatLng(location.getLatitude(), location.getLongitude()), DEFAULT_ZOOM, "My Location");
+                               moveCamera(new LatLng(location.getLatitude(), location.getLongitude()), DEFAULT_ZOOM, "My Location");
 
                             Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
 
@@ -403,57 +421,6 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
                                                 + addresses.get(0).getAddressLine(0)
 
                                 ));
-                                HashMap currentLocationHashMap = new HashMap();
-                                currentLocationHashMap.put("Current Location Name", addresses.get(0).getLocality());
-                                currentLocationHashMap.put("Country", addresses.get(0).getCountryName());
-                                currentLocationHashMap.put("Locality", addresses.get(0).getAdminArea());
-
-
-                                currenttopointRef.child(mUser.getUid()).child("Current Location").updateChildren(currentLocationHashMap).addOnCompleteListener(new OnCompleteListener() {
-                                    @Override
-                                    public void onComplete(@NonNull Task task) {
-                                        HashMap currentecoordinates = new HashMap();
-                                        currentecoordinates.put("lat", addresses.get(0).getLatitude());
-                                        currentecoordinates.put("lng", addresses.get(0).getLongitude());
-
-                                        currenttopointRef.child(mUser.getUid()).child("Current Location").child("Coordinates").updateChildren(currentecoordinates).addOnCompleteListener(new OnCompleteListener() {
-                                            @Override
-                                            public void onComplete(@NonNull Task task) {
-
-                                            }
-                                        });
-//
-                                    }
-                                });
-                                retriveCurrentRef.child(mUser.getUid()).child("Current Location").addValueEventListener(new ValueEventListener() {
-
-                                    private Marker mMyCurrentMarker;
-
-                                    @Override
-                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                        if (snapshot.exists()) {
-                                            Double latitudecurrent = snapshot.child("Coordinates").child("lat").getValue(Double.class);
-                                            Double longitudecurrent = snapshot.child("Coordinates").child("lng").getValue(Double.class);
-                                            //String name = snapshot.child("Destination Name").getValue().toString();
-
-                                            LatLng currentLocation = new LatLng(latitudecurrent, longitudecurrent);
-
-                                            MarkerOptions userMarker = new MarkerOptions().position(currentLocation).title("Current Location");
-                                            if (mMyCurrentMarker != null){
-                                                mMyCurrentMarker.remove();
-                                            }
-                                            mMyCurrentMarker = mMap.addMarker(userMarker);
-                                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, DEFAULT_ZOOM));
-
-
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onCancelled(@NonNull DatabaseError error) {
-
-                                    }
-                                });
 
 //                                String userID = FirebaseAuth.getInstance().getCurrentUser().getUid();
 //                                DatabaseReference userCurrentLocation = FirebaseDatabase.getInstance().getReference().child("Current Location").child("CurrentToPoint");
@@ -471,69 +438,43 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
         }catch (SecurityException e){
             Log.d(TAG, "getDeviceLocation: SecurityExcpetion" + e.getMessage());
         }
-        /*
-        try {
-            if (mLocationPermissionGranted){
-                Task location = mFusedLocationProviderClient.getLastLocation();
-                location.addOnCompleteListener(new OnCompleteListener() {
-                    @Override
-                    public void onComplete(@NonNull Task task) {
-                        if (task.isSuccessful()){
-                            Log.d(TAG, "onComplete: Found Location");
-                            Location currentlocation = (Location) task.getResult();
-
-
-                            moveCamera(new LatLng(currentlocation.getLatitude(), currentlocation.getLongitude()), DEFAULT_ZOOM, "My Location");
-                        }else {
-                            Log.d(TAG, "onComplete: Current Location Null");
-                            Toast.makeText(getActivity(), "Unable to get Current LOcation", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-            }
-
-        }catch (SecurityException e){
-            Log.d(TAG, "getDeviceLocation: SecurityExcpetion" + e.getMessage());
-        }
-
- */
     }
 
 
-/*
-    @Override
-    public void onLocationChanged(@NonNull Location location) {
-        Log.d(TAG, "onLocationChanged: location latlng" + location.getLatitude() + "," + location.getLongitude());
-        Toast.makeText(getActivity(), ""+location.getLatitude()+ "," +location.getLongitude(), Toast.LENGTH_SHORT).show();
-        try {
-            Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
-            List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
-
-            String addressb = addresses.get(0).getAddressLine(0);
-
-            tvcurrentLocation.setText(addressb);
-            moveCamera(new LatLng(location.getLatitude(), location.getLongitude()), DEFAULT_ZOOM, "My Location");
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(@NonNull String provider) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(@NonNull String provider) {
-
-    }
-
- */
+///*
+//    @Override
+//    public void onLocationChanged(@NonNull Location location) {
+//        Log.d(TAG, "onLocationChanged: location latlng" + location.getLatitude() + "," + location.getLongitude());
+//        Toast.makeText(getActivity(), ""+location.getLatitude()+ "," +location.getLongitude(), Toast.LENGTH_SHORT).show();
+//        try {
+//            Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
+//            List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+//
+//            String addressb = addresses.get(0).getAddressLine(0);
+//
+//            tvcurrentLocation.setText(addressb);
+//            moveCamera(new LatLng(location.getLatitude(), location.getLongitude()), DEFAULT_ZOOM, "My Location");
+//        }catch (Exception e){
+//            e.printStackTrace();
+//        }
+//    }
+//
+//    @Override
+//    public void onStatusChanged(String provider, int status, Bundle extras) {
+//
+//    }
+//
+//    @Override
+//    public void onProviderEnabled(@NonNull String provider) {
+//
+//    }
+//
+//    @Override
+//    public void onProviderDisabled(@NonNull String provider) {
+//
+//    }
+//
+// */
 
     private void moveCamera(LatLng latLng, float zoom, String title){
         Log.d(TAG, "moveCamera: moving camera to lat");

@@ -117,6 +117,7 @@ public class PointToPoint extends Fragment implements OnMapReadyCallback, Google
     private GoogleApiClient mGoogleApiClient;
     private PlaceInfo mPlace;
     private TextView tvdistance;
+    Marker mMyFirstMarker, mySecondMarker;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -163,7 +164,7 @@ public class PointToPoint extends Fragment implements OnMapReadyCallback, Google
             @Override
             public void onClick(View v) {
                 geoLocate();
-                location2();
+                //location2();
                 getDistance();
             }
         });
@@ -239,195 +240,180 @@ public class PointToPoint extends Fragment implements OnMapReadyCallback, Google
 
     }
 
-    private void location2(){
-        Log.d(TAG, "location2:  seraching location 2");
-
-        String searchString2 = mSearchText2.getText().toString();
-
-        Geocoder geocoder = new Geocoder(getActivity());
-
-        List<Address> list = new ArrayList<>();
-
-        try {
-            list = geocoder.getFromLocationName(searchString2, 1);
-        }catch (IOException e){
-            Log.e(TAG, "location2: IOException: " + e.getMessage() );
-        }
-        if (list.size() > 0){
-            Address address = list.get(0);
-
-            Log.d(TAG, "geoLocate: found a location: " + address.toString());
-
-//            moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), DEFAULT_ZOOM,
-//                    address.getAddressLine(0));
-
-            HashMap destinationHashMap = new HashMap();
-            destinationHashMap.put("Destination Name", searchString2);
-            destinationHashMap.put("Locality", address.getLocality());
-            destinationHashMap.put("Country", address.getCountryName());
-
-
-            pointtopointRef.child(mUser.getUid()).child("Destination").updateChildren(destinationHashMap).addOnCompleteListener(new OnCompleteListener() {
-                @Override
-                public void onComplete(@NonNull Task task) {
-                    HashMap descoordinates = new HashMap();
-                    descoordinates.put("lat", address.getLatitude());
-                    descoordinates.put("lng", address.getLongitude());
-
-                    pointtopointRef.child(mUser.getUid()).child("Destination").child("Coordinates").updateChildren(descoordinates).addOnCompleteListener(new OnCompleteListener() {
-                        @Override
-                        public void onComplete(@NonNull Task task) {
-
-                        }
-                    });
-//                    DatabaseReference pointtopointdestination = pointtopointSourceRef.child(mUser.getUid()).child("Coordinates");
+//    private void location2(){
+//        Log.d(TAG, "location2:  seraching location 2");
 //
-//                    GeoFire geoFire = new GeoFire(pointtopointdestination);
-//                    geoFire.setLocation(mUser.getUid(),new GeoLocation(address.getLatitude(), address.getLongitude()));
-                }
-            });
+//        String searchString2 = mSearchText2.getText().toString();
+//
+//        Geocoder geocoder = new Geocoder(getActivity());
+//
+//        List<Address> list = new ArrayList<>();
+//
+//        try {
+//            list = geocoder.getFromLocationName(searchString2, 1);
+//        }catch (IOException e){
+//            Log.e(TAG, "location2: IOException: " + e.getMessage() );
+//        }
+//        if (list.size() > 0){
+//            Address address = list.get(0);
+//
+//            Log.d(TAG, "geoLocate: found a location: " + address.toString());
+//
+////            moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), DEFAULT_ZOOM,
+////                    address.getAddressLine(0));
+//
+//            HashMap destinationHashMap = new HashMap();
+//            destinationHashMap.put("Destination Name", searchString2);
+//            destinationHashMap.put("Locality", address.getLocality());
+//            destinationHashMap.put("Country", address.getCountryName());
+//            destinationHashMap.put("lat", address.getLatitude());
+//            destinationHashMap.put("lng", address.getLongitude());
+//
+//            pointtopointRef.child(mUser.getUid()).push().child("Destination").setValue(destinationHashMap).addOnCompleteListener(new OnCompleteListener() {
+//                        @Override
+//                        public void onComplete(@NonNull Task task) {
+//                            retriveDestinationRef.child(mUser.getUid()).child("Destination").addValueEventListener(new ValueEventListener() {
+//
+//                                private Marker mMyMarker;
+//
+//                                @Override
+//                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                                    if (snapshot.exists()) {
+//                                        Double latitude = snapshot.child("Coordinates").child("lat").getValue(Double.class);
+//                                        Double longitude = snapshot.child("Coordinates").child("lng").getValue(Double.class);
+//                                        String name = snapshot.child("Destination Name").getValue().toString();
+//
+//                                        LatLng location2 = new LatLng(latitude, longitude);
+//
+//                                        MarkerOptions userMarker = new MarkerOptions().position(location2).title(name);
+//                                        if (mMyMarker != null) {
+//                                            mMyMarker.remove();
+//                                        }
+//                                        mMyMarker = mMap.addMarker(userMarker);
+//                                    }
+//                                }
+//
+//                                @Override
+//                                public void onCancelled(@NonNull DatabaseError error) {
+//
+//                                }
+//                            });
+//
+//                        }
+//                    });
+////                    DatabaseReference pointtopointdestination = pointtopointSourceRef.child(mUser.getUid()).child("Coordinates");
+////
+////                    GeoFire geoFire = new GeoFire(pointtopointdestination);
+////                    geoFire.setLocation(mUser.getUid(),new GeoLocation(address.getLatitude(), address.getLongitude()));
+//                }
+//
+//    }
 
-
-
-
-        }
-        retriveDestinationRef.child(mUser.getUid()).child("Destination").addValueEventListener(new ValueEventListener() {
-
-            private Marker mMyMarker;
-
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    Double latitude = snapshot.child("Coordinates").child("lat").getValue(Double.class);
-                    Double longitude = snapshot.child("Coordinates").child("lng").getValue(Double.class);
-                    String name = snapshot.child("Destination Name").getValue().toString();
-
-                    LatLng location2 = new LatLng(latitude, longitude);
-
-                    MarkerOptions userMarker = new MarkerOptions().position(location2).title(name);
-                    if(mMyMarker!=null){
-                        mMyMarker.remove();
-                    }
-                    mMyMarker = mMap.addMarker(userMarker);
-
-
-
-
-//                    Marker myMarker = null;
-//                  userMarker = new MarkerOptions().position(location2).title("Location");
-
-
-
-                    //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location2, DEFAULT_ZOOM));
-//                  myMarker.remove();
-
-//                   mMap.addMarker(new MarkerOptions().position(location2).title("Marker in C"));
-//                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location2, DEFAULT_ZOOM));
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
-
-       }
 
     private  void geoLocate(){
         Log.d(TAG, "geoLocate: geolocating");
-
         String searchString = mSearchText.getText().toString();
 
-
         Geocoder geocoder = new Geocoder(getActivity());
+
         List<Address> list = new ArrayList<>();
 
         try {
-            list = geocoder.getFromLocationName(searchString, 1);
-
+           list = geocoder.getFromLocationName(searchString, 1);
         }catch (IOException e){
-            Log.e(TAG, "geoLocate: IOException: " + e.getMessage() );
+            Log.e(TAG, "location2: IOException: " + e.getMessage() );
         }
-
-        if (list.size() > 0){
+        if (list.size() > 0) {
             Address address = list.get(0);
 
-            Log.d(TAG, "geoLocate: found a location: " + address.toString());
+            HashMap sourceHashMap = new HashMap();
+            sourceHashMap.put("PSourceName", searchString);
+            sourceHashMap.put("PSourceLocality", address.getLocality());
+            sourceHashMap.put("PSourceCountry", address.getCountryName());
+            sourceHashMap.put("PSourcelat", address.getLatitude());
+            sourceHashMap.put("PSourcelng", address.getLongitude());
+
+            String searchString2 = mSearchText2.getText().toString();
+            Geocoder geocoder1 = new Geocoder(getActivity());
+            List<Address> list1 = new ArrayList<>();
+
+            try {
+                list1 = geocoder1.getFromLocationName(searchString2, 1);
+
+            } catch (IOException e) {
+                Log.e(TAG, "geoLocate: IOException: " + e.getMessage());
+            }
+
+            if (list1.size() > 0) {
+                Address address1 = list1.get(0);
+                Log.d(TAG, "geoLocate: found a location: " + address1.toString());
 
 //            moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), DEFAULT_ZOOM,
 //                    address.getAddressLine(0));
-
-            HashMap sourceHashMap = new HashMap();
-            sourceHashMap.put("Source Name", searchString);
-            sourceHashMap.put("Locality", address.getLocality());
-            sourceHashMap.put("Country", address.getCountryName());
-
-
-            pointtopointRef.child(mUser.getUid()).child("Source").updateChildren(sourceHashMap).addOnCompleteListener(new OnCompleteListener() {
-                @Override
-                public void onComplete(@NonNull Task task) {
-                    HashMap sourcecoordinates = new HashMap();
-                    sourcecoordinates.put("lat", address.getLatitude());
-                    sourcecoordinates.put("lng", address.getLongitude());
-
-                    pointtopointRef.child(mUser.getUid()).child("Source").child("Coordinates").updateChildren(sourcecoordinates).addOnCompleteListener(new OnCompleteListener() {
-                        @Override
-                        public void onComplete(@NonNull Task task) {
-
-                        }
-                    });
-//                    DatabaseReference pointtopointdestination = pointtopointSourceRef.child(mUser.getUid()).child("Coordinates");
-//
-//                    GeoFire geoFire = new GeoFire(pointtopointdestination);
-//                    geoFire.setLocation(mUser.getUid(),new GeoLocation(address.getLatitude(), address.getLongitude()));
-                }
-            });
-
-            retriveSourceRef.child(mUser.getUid()).child("Source").addValueEventListener(new ValueEventListener() {
-
-                private Marker mMyFirstMarker;
-
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    if (snapshot.exists()) {
-                        Double latitude1 = snapshot.child("Coordinates").child("lat").getValue(Double.class);
-                        Double longitude1 = snapshot.child("Coordinates").child("lng").getValue(Double.class);
-                        String name1 = snapshot.child("Source Name").getValue().toString();
-
-                        LatLng location2 = new LatLng(latitude1, longitude1);
-
-                        MarkerOptions userMarker1 = new MarkerOptions().position(location2).title(name1);
-                        if(mMyFirstMarker!=null){
-                            mMyFirstMarker.remove();
-                        }
-                        mMyFirstMarker = mMap.addMarker(userMarker1);
-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location2, DEFAULT_ZOOM));
+                sourceHashMap.put("PDestinationName", searchString2);
+                sourceHashMap.put("PDestinationLocality", address1.getLocality());
+                sourceHashMap.put("PDestinationCountry", address1.getCountryName());
+                sourceHashMap.put("PDestinationlat", address1.getLatitude());
+                sourceHashMap.put("PDestinationlng", address1.getLongitude());
 
 
+                pointtopointRef.child(mUser.getUid()).push().setValue(sourceHashMap).addOnCompleteListener(new OnCompleteListener() {
+
+                    @Override
+                    public void onComplete(@NonNull Task task) {
+
+                        retriveSourceRef.child(mUser.getUid()).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+
+                            @Override
+                            public void onComplete(@NonNull Task<DataSnapshot> task) {
 
 
-//                    Marker myMarker = null;
-//                  userMarker = new MarkerOptions().position(location2).title("Location");
+                                if (task.isSuccessful()){
+                                    for(DataSnapshot snapshot: task.getResult().getChildren()){
+                                        Double sourcelatitude = snapshot.child("PSourcelat").getValue(Double.class);
+                                        Double sourcelongitude = snapshot.child("PSourcelng").getValue(Double.class);
+                                        Double destlatitude = snapshot.child("PDestinationlat").getValue(Double.class);
+                                        Double destlongitude = snapshot.child("PDestinationlng").getValue(Double.class);
+                                        String sourcename = snapshot.child("PSourceName").getValue().toString();
+                                        String destname = snapshot.child("PDestinationName").getValue().toString();
+
+                                        LatLng sourcelocation = new LatLng(sourcelatitude, sourcelongitude);
+                                        LatLng destinationlocation = new LatLng(destlatitude, destlongitude);
+                                        if (mMyFirstMarker != null) {
+                                            mMyFirstMarker.remove();
+                                        }
+                                        if (mySecondMarker != null) {
+                                            mySecondMarker.remove();
+                                        }
+                                        MarkerOptions userMarker1 = new MarkerOptions().position(sourcelocation).title(sourcename);
+
+                                        mMyFirstMarker = mMap.addMarker(userMarker1);
+                                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sourcelocation, DEFAULT_ZOOM));
+
+                                        MarkerOptions userMarker2 = new MarkerOptions().position(destinationlocation).title(destname);
+
+                                        mySecondMarker = mMap.addMarker(userMarker2);
+                                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sourcelocation, DEFAULT_ZOOM));
+
+                                    }
 
 
+                                    }
+                                }
 
-//                  myMarker.remove();
 
-//                   mMap.addMarker(new MarkerOptions().position(location2).title("Marker in C"));
-//                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location2, DEFAULT_ZOOM));
+                        });
+
                     }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-
-                }
-            });
+                });
+            }
 
 
         }
-    }
+
+
+        }
+
     @SuppressLint("MissingPermission")
     private void getDeviceLocation() {
         Log.d(TAG, "getDeviceLocation: getting devices currecnt location");

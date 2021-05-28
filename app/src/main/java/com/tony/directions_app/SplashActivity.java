@@ -3,12 +3,19 @@ package com.tony.directions_app;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.ActivityOptions;
 import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.util.Pair;
+import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -17,61 +24,45 @@ import com.google.firebase.auth.FirebaseAuth;
 
 public class SplashActivity extends AppCompatActivity {
 
-    private static final String TAG = "SplashActivity";
+    private static int SPLASH_SCREEN = 5000;
 
-    private static final int ERROR_DIALOG_REQUEST = 9001;
-
+    //variables
+    Animation topAnim, bottomAnim;
+    ImageView image;
+    TextView logo;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_splash);
 
+        //animations
+        topAnim = AnimationUtils.loadAnimation(this, R.anim.top_animation);
+        bottomAnim = AnimationUtils.loadAnimation(this, R.anim.bottom_animation);
 
+        //hooks
+        image = findViewById(R.id.imageView);
+        logo = findViewById(R.id.textView4);
 
-        if (isServicesOK()){
-            init();
-        }
+        image.setAnimation(topAnim);
+        logo.setAnimation(bottomAnim);
 
-    }
-
-
-
-    public  void init(){
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-        Runnable runnable = new Runnable() {
+        new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                startActivity(intent);
+                Intent intent = new Intent(SplashActivity.this, LogInActivity.class);
+
+                Pair[] pairs = new Pair[2];
+                pairs[0] = new Pair<View,String>(image, "logo_image");
+                pairs[1] = new Pair<View,String>(logo, "logo_text");
+
+                ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(SplashActivity.this,pairs);
+                startActivity(intent,options.toBundle());
                 finish();
+
             }
-        };
-
-        Handler handler = new Handler();
-        handler.postDelayed(runnable, 10000);
-
+        }, SPLASH_SCREEN);
     }
-    public boolean isServicesOK(){
-        Log.d(TAG, "isServicesOK: checking google services version ");
-
-        int available = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(SplashActivity.this);
-
-        if (available == ConnectionResult.SUCCESS){
-            Log.d(TAG, "isServicesOK: Google play services is working");
-            return  true;
-        }
-        else if (GoogleApiAvailability.getInstance().isUserResolvableError(available)){
-            Log.d(TAG, "isServicesOK: an error occured but we can resolve it");
-            Dialog dialog = GoogleApiAvailability.getInstance().getErrorDialog(SplashActivity.this, available, ERROR_DIALOG_REQUEST);
-            dialog.show();
-        }
-        else {
-            Toast.makeText(this, "You cant make map request", Toast.LENGTH_SHORT).show();
-        }
-        return  false;
-    }
-
 }

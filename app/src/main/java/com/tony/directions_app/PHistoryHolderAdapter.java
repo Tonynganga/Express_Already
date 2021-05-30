@@ -37,6 +37,7 @@ public class PHistoryHolderAdapter extends RecyclerView.Adapter<PHistoryHolderAd
         Model model = mList.get(position);
         holder.Psource.setText(model.getPSourceName());
         holder.Pdestination.setText(model.getPDestinationName());
+        holder.Pdistance.setText(model.getPDistance());
     }
 
     @Override
@@ -46,13 +47,14 @@ public class PHistoryHolderAdapter extends RecyclerView.Adapter<PHistoryHolderAd
 
     public static class MyViewHolder extends RecyclerView.ViewHolder {
 
-        TextView Psource, Pdestination;
+        TextView Psource, Pdestination, Pdistance;
 
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
 
             Psource = itemView.findViewById(R.id.tv_from);
             Pdestination = itemView.findViewById(R.id.tv_to);
+            Pdistance = itemView.findViewById(R.id.tv_distance);
         }
     }
 }

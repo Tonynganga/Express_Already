@@ -107,7 +107,7 @@ public class PointToPoint extends Fragment implements OnMapReadyCallback, Google
     private AutoCompleteTextView mSearchText;
     private AutoCompleteTextView mSearchText2;
     private  DatabaseReference pointtopointRef;
-    private  DatabaseReference retriveDestinationRef, retriveSourceRef;
+    private  DatabaseReference retriveDestinationRef, retriveRef;
     private FirebaseAuth mAuth;
     private FirebaseUser mUser;
 
@@ -129,9 +129,8 @@ public class PointToPoint extends Fragment implements OnMapReadyCallback, Google
         btnfind = view.findViewById(R.id.btnfind);
         tvdistance = view.findViewById(R.id.distance);
 
-        retriveDestinationRef = FirebaseDatabase.getInstance().getReference("Location To Location");
         pointtopointRef = FirebaseDatabase.getInstance().getReference().child("Location To Location");
-        retriveSourceRef = FirebaseDatabase.getInstance().getReference("Location To Location");
+        retriveRef = FirebaseDatabase.getInstance().getReference("Location To Location");
 
 
         mAuth = FirebaseAuth.getInstance();
@@ -165,7 +164,7 @@ public class PointToPoint extends Fragment implements OnMapReadyCallback, Google
             public void onClick(View v) {
                 geoLocate();
                 //location2();
-                getDistance();
+                //getDistance();
             }
         });
 
@@ -182,7 +181,7 @@ public class PointToPoint extends Fragment implements OnMapReadyCallback, Google
             @Override
             public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH
-                        || actionId == EditorInfo.IME_ACTION_DONE
+                        || actionId == EditorInfo.IME_ACTION_DONEu
                         || keyEvent.getAction() == KeyEvent.ACTION_DOWN
                         || keyEvent.getAction() == KeyEvent.KEYCODE_ENTER){
                     geoLocate();
@@ -193,52 +192,52 @@ public class PointToPoint extends Fragment implements OnMapReadyCallback, Google
         */
 
     }
-    @SuppressLint("SetTextI18n")
-    private  void getDistance() {
-        String location1 = mSearchText2.getText().toString();
-        Geocoder geocoder = new Geocoder(getActivity());
-        List<Address> list = new ArrayList<>();
-        try {
-            list = geocoder.getFromLocationName(String.valueOf(location1), 1);
-        } catch (IOException e) {
-            Log.e(TAG, "location2: IOException: " + e.getMessage());
-        }
-        double endLongitude = 0;
-        double endLatitude = 0;
-        if (list.size() > 0) {
-            Address address = list.get(0);
-            endLatitude = address.getLatitude();
-            endLongitude = address.getLongitude();
-
-            Log.d(TAG, "geoLocate: found a location: " + address.toString());
-        }
-
-        String location2 = mSearchText.getText().toString();
-        Geocoder geocoder1 = new Geocoder(getActivity());
-        List<Address> list1 = new ArrayList<>();
-        try {
-            list1 = geocoder1.getFromLocationName(String.valueOf(location2), 1);
-        } catch (IOException e) {
-            Log.e(TAG, "getDistance: location3" + e.getMessage());
-        }
-        double startLatitude = 0;
-        double startLongitude = 0;
-        if (list1.size() > 0) {
-            Address address1 = list1.get(0);
-            startLatitude = address1.getLatitude();
-            startLongitude = address1.getLongitude();
-            Log.d(TAG, "getDistance: found another location");
-        }
-
-
-        float[] distanceresults = new float[1];
-        Location.distanceBetween(startLatitude, startLongitude, endLatitude, endLongitude, distanceresults);
-        float distance = distanceresults[0];
-
-        int kilometre = (int) (distance / 1000);
-        tvdistance.setText(kilometre + " km");
-
-    }
+//    @SuppressLint("SetTextI18n")
+//    private  void getDistance() {
+//        String location1 = mSearchText2.getText().toString();
+//        Geocoder geocoder = new Geocoder(getActivity());
+//        List<Address> list = new ArrayList<>();
+//        try {
+//            list = geocoder.getFromLocationName(String.valueOf(location1), 1);
+//        } catch (IOException e) {
+//            Log.e(TAG, "location2: IOException: " + e.getMessage());
+//        }
+//        double endLongitude = 0;
+//        double endLatitude = 0;
+//        if (list.size() > 0) {
+//            Address address = list.get(0);
+//            endLatitude = address.getLatitude();
+//            endLongitude = address.getLongitude();
+//
+//            Log.d(TAG, "geoLocate: found a location: " + address.toString());
+//        }
+//
+//        String location2 = mSearchText.getText().toString();
+//        Geocoder geocoder1 = new Geocoder(getActivity());
+//        List<Address> list1 = new ArrayList<>();
+//        try {
+//            list1 = geocoder1.getFromLocationName(String.valueOf(location2), 1);
+//        } catch (IOException e) {
+//            Log.e(TAG, "getDistance: location3" + e.getMessage());
+//        }
+//        double startLatitude = 0;
+//        double startLongitude = 0;
+//        if (list1.size() > 0) {
+//            Address address1 = list1.get(0);
+//            startLatitude = address1.getLatitude();
+//            startLongitude = address1.getLongitude();
+//            Log.d(TAG, "getDistance: found another location");
+//        }
+//
+//
+//        float[] distanceresults = new float[1];
+//        Location.distanceBetween(startLatitude, startLongitude, endLatitude, endLongitude, distanceresults);
+//        float distance = distanceresults[0];
+//
+//        int kilometre = (int) (distance / 1000);
+//        tvdistance.setText(kilometre + " km");
+//
+//    }
 
 //    private void location2(){
 //        Log.d(TAG, "location2:  seraching location 2");
@@ -325,6 +324,8 @@ public class PointToPoint extends Fragment implements OnMapReadyCallback, Google
         }
         if (list.size() > 0) {
             Address address = list.get(0);
+            double startLatitude = address.getLatitude();
+            double startLongitude = address.getLongitude();
 
             HashMap sourceHashMap = new HashMap();
             sourceHashMap.put("PSourceName", searchString);
@@ -346,15 +347,26 @@ public class PointToPoint extends Fragment implements OnMapReadyCallback, Google
 
             if (list1.size() > 0) {
                 Address address1 = list1.get(0);
+                double endLatitude = address1.getLatitude();
+                double endLongitude = address1.getLongitude();
+
+
+                float[] distanceresults = new float[1];
+                Location.distanceBetween(startLatitude, startLongitude, endLatitude, endLongitude, distanceresults);
+                float distance = distanceresults[0];
+
+                int kilometre = (int) (distance / 1000);
+                tvdistance.setText(kilometre + " km");
+
+
                 Log.d(TAG, "geoLocate: found a location: " + address1.toString());
 
-//            moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), DEFAULT_ZOOM,
-//                    address.getAddressLine(0));
                 sourceHashMap.put("PDestinationName", searchString2);
                 sourceHashMap.put("PDestinationLocality", address1.getLocality());
                 sourceHashMap.put("PDestinationCountry", address1.getCountryName());
                 sourceHashMap.put("PDestinationlat", address1.getLatitude());
                 sourceHashMap.put("PDestinationlng", address1.getLongitude());
+                sourceHashMap.put("PDistance", kilometre + " Km");
 
 
                 pointtopointRef.child(mUser.getUid()).push().setValue(sourceHashMap).addOnCompleteListener(new OnCompleteListener() {
@@ -362,7 +374,7 @@ public class PointToPoint extends Fragment implements OnMapReadyCallback, Google
                     @Override
                     public void onComplete(@NonNull Task task) {
 
-                        retriveSourceRef.child(mUser.getUid()).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                        retriveRef.child(mUser.getUid()).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
 
                             @Override
                             public void onComplete(@NonNull Task<DataSnapshot> task) {

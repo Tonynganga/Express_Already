@@ -2,7 +2,7 @@ package com.tony.directions_app.Models;
 
 public class Model {
 
-    String CCurrentLocality, CDestinationName, PSourceName, PDestinationName;
+    String CCurrentLocality, CDestinationName, PSourceName, PDestinationName, PDistance;
 
     public String getCCurrentLocality() {
         return CCurrentLocality;
@@ -18,5 +18,9 @@ public class Model {
 
     public String getPDestinationName() {
         return PDestinationName;
+    }
+
+    public String getPDistance() {
+        return PDistance;
     }
 }

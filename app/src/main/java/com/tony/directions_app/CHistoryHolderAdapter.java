@@ -37,6 +37,8 @@ public class CHistoryHolderAdapter extends RecyclerView.Adapter<CHistoryHolderAd
         Model model = mList.get(position);
         holder.Csource.setText(model.getCCurrentLocality());
         holder.Cdestination.setText(model.getCDestinationName());
+        holder.Cdistance.setText(model.getCDistance());
+        holder.CDate.setText(model.getCDate());
     }
 
     @Override
@@ -46,13 +48,15 @@ public class CHistoryHolderAdapter extends RecyclerView.Adapter<CHistoryHolderAd
 
     public static class MyViewHolder extends RecyclerView.ViewHolder {
 
-        TextView Csource, Cdestination;
+        TextView Csource, Cdestination, Cdistance, CDate;
 
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
 
             Csource = itemView.findViewById(R.id.tv_from);
             Cdestination = itemView.findViewById(R.id.tv_to);
+            Cdistance = itemView.findViewById(R.id.tv_distance);
+            CDate = itemView.findViewById(R.id.tv_date);
         }
     }
 }

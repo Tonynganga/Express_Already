@@ -58,7 +58,10 @@ import com.google.firebase.database.ValueEventListener;
 import com.tony.directions_app.Models.PlaceInfo;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -358,6 +361,9 @@ public class PointToPoint extends Fragment implements OnMapReadyCallback, Google
                 int kilometre = (int) (distance / 1000);
                 tvdistance.setText(kilometre + " km");
 
+                DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                Date date = new Date();
+                String strDate = dateFormat.format(date).toString();
 
                 Log.d(TAG, "geoLocate: found a location: " + address1.toString());
 
@@ -367,6 +373,7 @@ public class PointToPoint extends Fragment implements OnMapReadyCallback, Google
                 sourceHashMap.put("PDestinationlat", address1.getLatitude());
                 sourceHashMap.put("PDestinationlng", address1.getLongitude());
                 sourceHashMap.put("PDistance", kilometre + " Km");
+                sourceHashMap.put("PDate", strDate);
 
 
                 pointtopointRef.child(mUser.getUid()).push().setValue(sourceHashMap).addOnCompleteListener(new OnCompleteListener() {

@@ -56,7 +56,10 @@ import com.google.firebase.database.ValueEventListener;
 import com.tony.directions_app.Models.PlaceInfo;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -66,6 +69,8 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
 
     private double startLatitude;
     private double startLongitude;
+    private double endLatitude;
+    private double endLongitude;
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
@@ -84,7 +89,7 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
             if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 return;
             }
-            mMap.setMyLocationEnabled(false);
+            mMap.setMyLocationEnabled(true);
             mMap.getUiSettings().setMyLocationButtonEnabled(false);
             init();
 
@@ -166,7 +171,7 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
             public void onClick(View v) {
 //                geoLocate();
                 location2();
-               getDistance();
+               //getDistance();
             }
         });
 
@@ -195,75 +200,73 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
     }
 
 //    }
-    @SuppressLint("SetTextI18n")
-    private  void getDistance() {
-        String location2distance = mSearchTextdest.getText().toString();
-        Geocoder geocoder1 = new Geocoder(getActivity());
-        List<Address> loc1distancelist = new ArrayList<>();
-        try {
-            loc1distancelist = geocoder1.getFromLocationName(String.valueOf(location2distance), 1);
-        } catch (IOException e) {
-            Log.e(TAG, "getDistance: location3" + e.getMessage());
-        }
-        double endLatitude = 0;
-        double endLongitude = 0;
-        if (loc1distancelist.size() > 0) {
-            Address distanceaddress = loc1distancelist.get(0);
-            endLatitude = distanceaddress.getLatitude();
-            endLongitude = distanceaddress.getLongitude();
-            Log.d(TAG, "getDistance: found another location");
-        }
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(getActivity());
-        try {
-            if (mLocationPermissionGranted){
-                mFusedLocationProviderClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Location> task) {
-                        Location location = task.getResult();
-                        if (location != null) {
-
-                            try {
-//                                moveCamera(new LatLng(location.getLatitude(), location.getLongitude()), DEFAULT_ZOOM, "My Location");
-
-                                Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
-
-                                List<Address> addresses = geocoder.getFromLocation(
-                                        location.getLatitude(), location.getLongitude(), 1
-                                );
-
-                                startLatitude = addresses.get(0).getLatitude();
-                                startLongitude = addresses.get(0).getLongitude();
-
-
-
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                });
-            }
-        }catch (SecurityException e){
-            Log.d(TAG, "getDeviceLocation: SecurityExcpetion" + e.getMessage());
-        }
-
-
-        float[] distanceresults = new float[1];
-
-        Location.distanceBetween(startLatitude, startLongitude, endLatitude, endLongitude, distanceresults);
-        float distance = distanceresults[0];
-
-        int kilometre = (int) (distance / 1000);
-        currentDistance.setText(kilometre + " km");
-
-    }
+//    @SuppressLint("SetTextI18n")
+//    private  void getDistance() {
+//        String location2distance = mSearchTextdest.getText().toString();
+//        Geocoder geocoder1 = new Geocoder(getActivity());
+//        List<Address> loc1distancelist = new ArrayList<>();
+//        try {
+//            loc1distancelist = geocoder1.getFromLocationName(String.valueOf(location2distance), 1);
+//        } catch (IOException e) {
+//            Log.e(TAG, "getDistance: location3" + e.getMessage());
+//        }
+//        double endLatitude = 0;
+//        double endLongitude = 0;
+//        if (loc1distancelist.size() > 0) {
+//            Address distanceaddress = loc1distancelist.get(0);
+//            endLatitude = distanceaddress.getLatitude();
+//            endLongitude = distanceaddress.getLongitude();
+//            Log.d(TAG, "getDistance: found another location");
+//        }
+//        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(getActivity());
+//        try {
+//            if (mLocationPermissionGranted){
+//                mFusedLocationProviderClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
+//                    @Override
+//                    public void onComplete(@NonNull Task<Location> task) {
+//                        Location location = task.getResult();
+//                        if (location != null) {
+//
+//                            try {
+////                                moveCamera(new LatLng(location.getLatitude(), location.getLongitude()), DEFAULT_ZOOM, "My Location");
+//
+//                                Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
+//
+//                                List<Address> addresses = geocoder.getFromLocation(
+//                                        location.getLatitude(), location.getLongitude(), 1
+//                                );
+//
+//                                startLatitude = addresses.get(0).getLatitude();
+//                                startLongitude = addresses.get(0).getLongitude();
+//
+//
+//
+//                            } catch (IOException e) {
+//                                e.printStackTrace();
+//                            }
+//                        }
+//                    }
+//                });
+//            }
+//        }catch (SecurityException e){
+//            Log.d(TAG, "getDeviceLocation: SecurityExcpetion" + e.getMessage());
+//        }
+//
+//
+//        float[] distanceresults = new float[1];
+//
+//        Location.distanceBetween(startLatitude, startLongitude, endLatitude, endLongitude, distanceresults);
+//        float distance = distanceresults[0];
+//
+//        int kilometre = (int) (distance / 1000);
+//        currentDistance.setText(kilometre + " km");
+//
+//    }
 
 
 
 
     private void location2(){
-
-
         String searchStringdestination = mSearchTextdest.getText().toString();
 
         Geocoder geocoder = new Geocoder(getActivity());
@@ -275,8 +278,12 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
         }catch (IOException e){
             Log.e(TAG, "location2: IOException: " + e.getMessage() );
         }
+
         if (list.size() > 0) {
             Address addressdestination = list.get(0);
+
+            endLatitude = addressdestination.getLatitude();
+            endLongitude = addressdestination.getLongitude();
             Log.d(TAG, "geoLocate: found a location: " + addressdestination.toString());
 
             HashMap CurrentToPointHashMap = new HashMap();
@@ -289,6 +296,7 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
             mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(getActivity());
             try {
                 if (mLocationPermissionGranted){
+                    double finalEndLatitude = endLatitude;
                     mFusedLocationProviderClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
                         @Override
                         public void onComplete(@NonNull Task<Location> task) {
@@ -317,11 +325,29 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
 
                                     ));
 
+                                    startLatitude = addresses.get(0).getLatitude();
+                                    startLongitude = addresses.get(0).getLongitude();
+
+                                    float[] distanceresults = new float[1];
+
+                                    Location.distanceBetween(startLatitude, startLongitude, endLatitude, endLongitude, distanceresults);
+                                    float distance = distanceresults[0];
+
+                                    int currentKilometre = (int) (distance / 1000);
+                                    currentDistance.setText(currentKilometre + " km");
+
+
+                                    DateFormat dateFormat2 = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                                    Date date2 = new Date();
+                                    String strDate2 = dateFormat2.format(date2).toString();
+
                                     CurrentToPointHashMap.put("CCurrentLocation Name", addresses.get(0).getLocality());
                                     CurrentToPointHashMap.put("CCurrentCountry", addresses.get(0).getCountryName());
                                     CurrentToPointHashMap.put("CCurrentLocality", addresses.get(0).getAdminArea());
                                     CurrentToPointHashMap.put("CCurrentlat", addresses.get(0).getLatitude());
                                     CurrentToPointHashMap.put("CCurrentlng", addresses.get(0).getLongitude());
+                                    CurrentToPointHashMap.put("CDistance", currentKilometre + " Km");
+                                    CurrentToPointHashMap.put("CDate", strDate2);
 
                                     currenttopointRef.child(mUser.getUid()).push().setValue(CurrentToPointHashMap).addOnCompleteListener(new OnCompleteListener() {
                                         @Override

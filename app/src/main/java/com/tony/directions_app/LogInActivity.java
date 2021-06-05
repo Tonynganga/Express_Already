@@ -20,9 +20,8 @@ import com.google.firebase.auth.FirebaseAuth;
 
 public class LogInActivity extends AppCompatActivity implements FirebaseAuth.AuthStateListener {
 
-    private EditText inputemailLogin, inputpasswordLogin;
-    private Button btnLogin;
-    private TextView gotoRegister, forgotPassword;
+    private TextInputLayout inputemailLogin, inputpasswordLogin;
+    private Button btnLogin, forgotPassword, gotoRegister;
     FirebaseAuth mAuth;
     boolean check=false;
     ProgressDialog mLoadingBar;
@@ -74,8 +73,8 @@ public class LogInActivity extends AppCompatActivity implements FirebaseAuth.Aut
     }
 
     private void LogIn() {
-        String email = inputemailLogin.getText().toString();
-        String password = inputpasswordLogin.getText().toString();
+        String email = inputemailLogin.getEditText().getText().toString();
+        String password = inputpasswordLogin.getEditText().getText().toString();
 
         if (email.isEmpty() || !email.contains("@gmail")){
             showError(inputemailLogin, "Email is not valid");
@@ -105,7 +104,7 @@ public class LogInActivity extends AppCompatActivity implements FirebaseAuth.Aut
         }
     }
 
-    private void showError(EditText field, String text) {
+    private void showError(TextInputLayout field, String text) {
         field.setError(text);
         field.requestFocus();
     }

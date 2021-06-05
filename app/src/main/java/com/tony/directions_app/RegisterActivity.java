@@ -19,9 +19,8 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class RegisterActivity extends AppCompatActivity {
-    private EditText inputemailRegister, inputpasswordRegister;
-    private Button btnRegister;
-    private TextView gotoLogin;
+    private TextInputLayout inputemailRegister, inputpasswordRegister;
+    private Button btnRegister, gotoLogin;
     FirebaseAuth mAuth;
     ProgressDialog mLoadingBar;
 
@@ -55,8 +54,8 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void RegisterUsers() {
-        String email = inputemailRegister.getText().toString();
-        String password = inputpasswordRegister.getText().toString();
+        String email = inputemailRegister.getEditText().getText().toString();
+        String password = inputpasswordRegister.getEditText().getText().toString();
 
         if (email.isEmpty() || !email.contains("@gmail")){
             showError(inputemailRegister, "Email is not valid");
@@ -86,7 +85,7 @@ public class RegisterActivity extends AppCompatActivity {
         }
     }
 
-    private void showError(EditText field, String text) {
+    private void showError(TextInputLayout field, String text) {
         field.setError(text);
         field.requestFocus();
     }

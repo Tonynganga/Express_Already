@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <array name="preloaded_fonts" translatable="false">
+        <item>@font/</item>
+        <item>@font/abril_fatface</item>
+        <item>@font/aclonica</item>
+        <item>@font/bangers</item>
+        <item>@font/brawler</item>
+        <item>@font/bungee_shade</item>
         <item>@font/diplomata_sc</item>
+        <item>@font/faster_one</item>
     </array>
 </resources>

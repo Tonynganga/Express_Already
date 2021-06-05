@@ -49,10 +49,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.tony.directions_app.Models.PlaceInfo;
 
 import java.io.IOException;
@@ -170,7 +168,7 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
             @Override
             public void onClick(View v) {
 //                geoLocate();
-                location2();
+                Getlocation();
                //getDistance();
             }
         });
@@ -199,74 +197,7 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
         */
     }
 
-//    }
-//    @SuppressLint("SetTextI18n")
-//    private  void getDistance() {
-//        String location2distance = mSearchTextdest.getText().toString();
-//        Geocoder geocoder1 = new Geocoder(getActivity());
-//        List<Address> loc1distancelist = new ArrayList<>();
-//        try {
-//            loc1distancelist = geocoder1.getFromLocationName(String.valueOf(location2distance), 1);
-//        } catch (IOException e) {
-//            Log.e(TAG, "getDistance: location3" + e.getMessage());
-//        }
-//        double endLatitude = 0;
-//        double endLongitude = 0;
-//        if (loc1distancelist.size() > 0) {
-//            Address distanceaddress = loc1distancelist.get(0);
-//            endLatitude = distanceaddress.getLatitude();
-//            endLongitude = distanceaddress.getLongitude();
-//            Log.d(TAG, "getDistance: found another location");
-//        }
-//        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(getActivity());
-//        try {
-//            if (mLocationPermissionGranted){
-//                mFusedLocationProviderClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
-//                    @Override
-//                    public void onComplete(@NonNull Task<Location> task) {
-//                        Location location = task.getResult();
-//                        if (location != null) {
-//
-//                            try {
-////                                moveCamera(new LatLng(location.getLatitude(), location.getLongitude()), DEFAULT_ZOOM, "My Location");
-//
-//                                Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
-//
-//                                List<Address> addresses = geocoder.getFromLocation(
-//                                        location.getLatitude(), location.getLongitude(), 1
-//                                );
-//
-//                                startLatitude = addresses.get(0).getLatitude();
-//                                startLongitude = addresses.get(0).getLongitude();
-//
-//
-//
-//                            } catch (IOException e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
-//                    }
-//                });
-//            }
-//        }catch (SecurityException e){
-//            Log.d(TAG, "getDeviceLocation: SecurityExcpetion" + e.getMessage());
-//        }
-//
-//
-//        float[] distanceresults = new float[1];
-//
-//        Location.distanceBetween(startLatitude, startLongitude, endLatitude, endLongitude, distanceresults);
-//        float distance = distanceresults[0];
-//
-//        int kilometre = (int) (distance / 1000);
-//        currentDistance.setText(kilometre + " km");
-//
-//    }
-
-
-
-
-    private void location2(){
+    private void Getlocation(){
         String searchStringdestination = mSearchTextdest.getText().toString();
 
         Geocoder geocoder = new Geocoder(getActivity());
@@ -276,7 +207,7 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
         try {
             list = geocoder.getFromLocationName(searchStringdestination, 1);
         }catch (IOException e){
-            Log.e(TAG, "location2: IOException: " + e.getMessage() );
+            Log.e(TAG, "Getlocation: IOException: " + e.getMessage() );
         }
 
         if (list.size() > 0) {
@@ -447,13 +378,6 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
                                                 + addresses.get(0).getAddressLine(0)
 
                                 ));
-
-//                                String userID = FirebaseAuth.getInstance().getCurrentUser().getUid();
-//                                DatabaseReference userCurrentLocation = FirebaseDatabase.getInstance().getReference().child("Current Location").child("CurrentToPoint");
-//
-//                                GeoFire geoFire = new GeoFire(userCurrentLocation);
-//                                geoFire.setLocation(userID, new GeoLocation(location.getLatitude(), location.getLongitude()));
-
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -465,42 +389,6 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
             Log.d(TAG, "getDeviceLocation: SecurityExcpetion" + e.getMessage());
         }
     }
-
-
-///*
-//    @Override
-//    public void onLocationChanged(@NonNull Location location) {
-//        Log.d(TAG, "onLocationChanged: location latlng" + location.getLatitude() + "," + location.getLongitude());
-//        Toast.makeText(getActivity(), ""+location.getLatitude()+ "," +location.getLongitude(), Toast.LENGTH_SHORT).show();
-//        try {
-//            Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
-//            List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
-//
-//            String addressb = addresses.get(0).getAddressLine(0);
-//
-//            tvcurrentLocation.setText(addressb);
-//            moveCamera(new LatLng(location.getLatitude(), location.getLongitude()), DEFAULT_ZOOM, "My Location");
-//        }catch (Exception e){
-//            e.printStackTrace();
-//        }
-//    }
-//
-//    @Override
-//    public void onStatusChanged(String provider, int status, Bundle extras) {
-//
-//    }
-//
-//    @Override
-//    public void onProviderEnabled(@NonNull String provider) {
-//
-//    }
-//
-//    @Override
-//    public void onProviderDisabled(@NonNull String provider) {
-//
-//    }
-//
-// */
 
     private void moveCamera(LatLng latLng, float zoom, String title){
         Log.d(TAG, "moveCamera: moving camera to lat");

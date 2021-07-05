@@ -1,6 +1,8 @@
 package com.tony.directions_app.Models;
 
-public class Model {
+import java.io.Serializable;
+
+public class Model implements Serializable {
 
     String CCurrentLocality, CDestinationName, PSourceName,
             PDestinationName, PDistance, PDate, CDistance, CDate;

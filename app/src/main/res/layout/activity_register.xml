@@ -59,17 +59,18 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/inputPasswordRegister"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/inputPasswordRegister"
-                android:hint="Password..."
                 android:layout_marginTop="10dp"
+                android:hint="Password..."
+                android:textColorHint="@color/colorPrimary"
                 app:passwordToggleEnabled="true">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textPassword"/>
+                    android:inputType="textPassword" />
             </com.google.android.material.textfield.TextInputLayout>
 
         </LinearLayout>

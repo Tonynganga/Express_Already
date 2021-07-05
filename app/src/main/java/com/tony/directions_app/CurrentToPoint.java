@@ -18,7 +18,6 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -79,7 +78,7 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         Log.d(TAG, "onMapReady: map is ready");
-        Toast.makeText(getActivity(), "Map is ready", Toast.LENGTH_LONG).show();
+        //Toast.makeText(getActivity(), "Map is ready", Toast.LENGTH_LONG).show();
         mMap = googleMap;
         if (mLocationPermissionGranted) {
             getDeviceLocation2();
@@ -121,6 +120,7 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
     private FirebaseAuth mAuth;
     private FirebaseUser mUser;
     Marker mMyCurrentLocMarker, myDestinationMarker;
+    String csource;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -141,8 +141,15 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
         mUser = mAuth.getCurrentUser();
 
         getLocationPermission();
+
+        MainActivity activity = (MainActivity) getActivity();
+        Bundle results = activity.getMyData2();
+        csource = results.getString("Csource");
+        //Toast.makeText(activity, "text" + csource, Toast.LENGTH_SHORT).show();
         return  view;
     }
+
+
     private void init() {
         Log.d(TAG, "init: initializing");
 

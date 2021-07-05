@@ -14,4 +14,6 @@
     <string name="API_KEY">AIzaSyBUYbVZFw5WGkIYhSRFIYAQ4bl5GKCA524</string>
     <string name="register">Register</string>
     <string name="already_have_an_account">Alrady Have an Account?? LogIn.</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

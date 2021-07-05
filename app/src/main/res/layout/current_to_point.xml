@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/input_comment_bg"
-    tools:context=".SplashActivity">
+    android:id="@+id/ccfragment">
 
 
     <fragment

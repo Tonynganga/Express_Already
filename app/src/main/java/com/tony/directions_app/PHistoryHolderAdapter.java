@@ -1,6 +1,8 @@
 package com.tony.directions_app;
 
-import android.content.Context;
+
+import android.app.Activity;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,12 +15,14 @@ import com.tony.directions_app.Models.Model;
 
 import java.util.ArrayList;
 
+
 public class PHistoryHolderAdapter extends RecyclerView.Adapter<PHistoryHolderAdapter.MyViewHolder> {
 
     ArrayList<Model> mList;
-    Context context;
+    private  Activity context;
 
-    public PHistoryHolderAdapter(Context context, ArrayList<Model> mList) {
+
+    public PHistoryHolderAdapter(Activity context, ArrayList<Model> mList) {
 
         this.mList = mList;
         this.context = context;
@@ -28,7 +32,8 @@ public class PHistoryHolderAdapter extends RecyclerView.Adapter<PHistoryHolderAd
     @Override
     public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(context).inflate(R.layout.each_history, parent, false);
-        return new MyViewHolder(v);
+        MyViewHolder holder = new MyViewHolder(v);
+        return holder;
 
     }
 
@@ -39,6 +44,17 @@ public class PHistoryHolderAdapter extends RecyclerView.Adapter<PHistoryHolderAd
         holder.Pdestination.setText(model.getPDestinationName());
         holder.Pdistance.setText(model.getPDistance());
         holder.Pdate.setText(model.getPDate());
+
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(context, MainActivity.class);
+                intent.putExtra("psource", mList.get(position).getPSourceName());
+                intent.putExtra("pdestination", mList.get(position).getPDestinationName());
+                context.startActivity(intent);
+            }
+        });
+
     }
 
     @Override
@@ -46,7 +62,7 @@ public class PHistoryHolderAdapter extends RecyclerView.Adapter<PHistoryHolderAd
         return mList.size();
     }
 
-    public static class MyViewHolder extends RecyclerView.ViewHolder {
+    public class MyViewHolder extends RecyclerView.ViewHolder {
 
         TextView Psource, Pdestination, Pdistance, Pdate;
 
@@ -57,6 +73,10 @@ public class PHistoryHolderAdapter extends RecyclerView.Adapter<PHistoryHolderAd
             Pdestination = itemView.findViewById(R.id.tv_to);
             Pdistance = itemView.findViewById(R.id.tv_distance);
             Pdate = itemView.findViewById(R.id.tv_date);
+
+
+
         }
+
     }
 }

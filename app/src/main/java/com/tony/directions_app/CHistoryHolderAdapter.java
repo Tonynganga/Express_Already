@@ -1,6 +1,7 @@
 package com.tony.directions_app;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,6 +40,16 @@ public class CHistoryHolderAdapter extends RecyclerView.Adapter<CHistoryHolderAd
         holder.Cdestination.setText(model.getCDestinationName());
         holder.Cdistance.setText(model.getCDistance());
         holder.CDate.setText(model.getCDate());
+
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(context, MainActivity.class);
+                intent.putExtra("Csource", model.getCCurrentLocality());
+                intent.putExtra("Cdestination", model.getCDestinationName());
+                context.startActivity(intent);
+            }
+        });
     }
 
     @Override

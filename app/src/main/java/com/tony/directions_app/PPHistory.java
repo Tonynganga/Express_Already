@@ -33,6 +33,7 @@ public class PPHistory extends Fragment {
     private DatabaseReference PPHistory = pphistory.getReference().child("Location To Location").child(mUser.getUid());
     private PHistoryHolderAdapter adapter;
     private ArrayList<Model> list;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {

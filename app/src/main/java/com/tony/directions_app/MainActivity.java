@@ -1,68 +1,16 @@
 package com.tony.directions_app;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.viewpager.widget.ViewPager;
-
-import android.Manifest;
-import android.annotation.SuppressLint;
-import android.app.Dialog;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.location.Address;
-import android.location.Geocoder;
-import android.location.Location;
 import android.os.Bundle;
-import android.os.PersistableBundle;
-import android.util.Log;
-import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
-import android.view.WindowManager;
-import android.view.inputmethod.EditorInfo;
-import android.widget.Adapter;
-import android.widget.AdapterView;
-import android.widget.AutoCompleteTextView;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.Toolbar;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager.widget.ViewPager;
+
 import com.getbase.floatingactionbutton.FloatingActionButton;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.internal.OnConnectionFailedListener;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.places.AutocompletePrediction;
-import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.PlaceBuffer;
-import com.google.android.gms.location.places.Places;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
-import com.tony.directions_app.Models.PlaceInfo;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity  {
     private ViewPager viewPager;
@@ -70,6 +18,10 @@ public class MainActivity extends AppCompatActivity  {
     private TabLayout tabLayout;
     viewPagerAdapter viewPagerAdapter;
     FirebaseAuth mAuth;
+    String psource;
+    String pdestination;
+    String csource;
+    String cdestination;
 
 
 
@@ -78,19 +30,37 @@ public class MainActivity extends AppCompatActivity  {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mAuth = FirebaseAuth.getInstance();
-
-
         viewPager=findViewById(R.id.pager);
         tabLayout=findViewById(R.id.tab_layout);
-
-
         viewPagerAdapter=new viewPagerAdapter(getSupportFragmentManager());
-
-
         tabLayout.setupWithViewPager(viewPager);
         viewPager.setAdapter(viewPagerAdapter);
 
+        Intent intentopen = getIntent();
+        if(intentopen.hasExtra("psource") && intentopen.hasExtra("pdestination")){
+
+            viewPager.setCurrentItem(0);
+        }else {
+            viewPager.setCurrentItem(1);
+        }
         FloatingActionButton fab1 = findViewById(R.id.fab_action1);
+
+        Intent intent = getIntent();
+        if(intent.hasExtra("psource") && intent.hasExtra("pdestination")) {
+            psource = getIntent().getStringExtra("psource");
+            pdestination = getIntent().getStringExtra("pdestination");
+
+        }
+
+        Intent intent1 = getIntent();
+        if(intent1.hasExtra("Csource") && intent1.hasExtra("Cdestination")) {
+            csource = getIntent().getStringExtra("Csource");
+            cdestination = getIntent().getStringExtra("Cdestination");
+
+        }
+
+
+
         fab1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -111,7 +81,20 @@ public class MainActivity extends AppCompatActivity  {
         });
 
     }
-
+    public  Bundle getMyData(){
+        Bundle hn = new Bundle();
+        hn.putString("psource", psource);
+        hn.putString("pdestination", pdestination);
+        return hn;
     }
+
+    public  Bundle getMyData2(){
+        Bundle hm = new Bundle();
+        hm.putString("Csource", csource);
+        hm.putString("Cdestination", cdestination);
+        return hm;
+    }
+
+}
 
 

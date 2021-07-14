@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/input_comment_bg"
+    android:background="@color/background"
     android:id="@+id/ccfragment">
 
 
@@ -110,7 +110,7 @@
 
 
     <TextView
-        android:id="@+id/currentDistance"
+        android:id="@+id/currentDistancemap"
         android:layout_width="match_parent"
         android:layout_height="35dp"
         android:textAlignment="center"

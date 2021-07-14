@@ -120,7 +120,8 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
     private FirebaseAuth mAuth;
     private FirebaseUser mUser;
     Marker mMyCurrentLocMarker, myDestinationMarker;
-    String csource;
+    String csource, cdestination;
+    @SuppressLint("SetTextI18n")
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -130,7 +131,7 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
 
         mGps = view.findViewById(R.id.ic_gps);
         btnfind = view.findViewById(R.id.btnfind);
-        currentDistance = view.findViewById(R.id.currentDistance);
+        currentDistance = view.findViewById(R.id.currentDistancemap);
         tvcurrentLocation = view.findViewById(R.id.currentlocation);
 
         retriveCurrentRef = FirebaseDatabase.getInstance().getReference("Current To Point");
@@ -145,7 +146,118 @@ public class CurrentToPoint extends Fragment implements OnMapReadyCallback, Goog
         MainActivity activity = (MainActivity) getActivity();
         Bundle results = activity.getMyData2();
         csource = results.getString("Csource");
-        //Toast.makeText(activity, "text" + csource, Toast.LENGTH_SHORT).show();
+        cdestination = results.getString("Cdestination");
+        if(csource!=null && cdestination!=null){
+            try {
+                Geocoder geocoderfour = new Geocoder(getActivity());
+
+                List<Address> listfour = new ArrayList<>();
+                listfour = geocoderfour.getFromLocationName(csource, 1);
+
+                if (listfour.size() > 0) {
+                    Address address = listfour.get(0);
+                    double startLatitude1 = address.getLatitude();
+                    double startLongitude1 = address.getLongitude();
+
+                    HashMap CurrentsourceHashMap = new HashMap();
+                    CurrentsourceHashMap.put("CCurrentLocation Name", csource);
+                    CurrentsourceHashMap.put("CCurrentCountry", address.getCountryName());
+                    CurrentsourceHashMap.put("CCurrentLocality", address.getAdminArea());
+                    CurrentsourceHashMap.put("CCurrentlat", address.getLatitude());
+                    CurrentsourceHashMap.put("CCurrentlng", address.getLongitude());
+
+
+                    Geocoder geocoderthree = new Geocoder(getActivity());
+                    List<Address> listthree = new ArrayList<>();
+                    listthree = geocoderthree.getFromLocationName(cdestination, 1);
+                    if (listthree.size() > 0) {
+                        Address address1 = listthree.get(0);
+                        double endLatitude1 = address1.getLatitude();
+                        double endLongitude1 = address1.getLongitude();
+
+
+                        float[] distanceresults1 = new float[1];
+                        Location.distanceBetween(startLatitude1, startLongitude1, endLatitude1, endLongitude1, distanceresults1);
+                        float distance1 = distanceresults1[0];
+
+                        int kilometre1 = (int) (distance1 / 1000);
+                        currentDistance.setText(kilometre1 + " km");
+
+                        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                        Date date = new Date();
+                        String strDatefour = dateFormat.format(date).toString();
+
+                        Log.d(TAG, "geoLocate: found a location: " + address1.toString());
+
+                        CurrentsourceHashMap.put("CDestinationlat", address1.getLatitude());
+                        CurrentsourceHashMap.put("CDestinationlng", address1.getLongitude());
+                        CurrentsourceHashMap.put("CDestinationName", cdestination);
+                        CurrentsourceHashMap.put("CDestinationCountry", address1.getCountryName());
+                        CurrentsourceHashMap.put("CDestinationLocality", address1.getLocality());
+                        CurrentsourceHashMap.put("CDistance", currentDistance + " Km");
+                        CurrentsourceHashMap.put("CDate", strDatefour);
+
+
+
+                        currenttopointRef.child(mUser.getUid()).push().setValue(CurrentsourceHashMap).addOnCompleteListener(new OnCompleteListener() {
+
+                            @Override
+                            public void onComplete(@NonNull Task task) {
+
+                                retriveCurrentRef.child(mUser.getUid()).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+
+                                    @Override
+                                    public void onComplete(@NonNull Task<DataSnapshot> task) {
+
+
+                                        if (task.isSuccessful()) {
+                                            for (DataSnapshot snapshot : task.getResult().getChildren()) {
+                                                Double currentLatitude = snapshot.child("CCurrentlat").getValue(Double.class);
+                                                Double currentLongitude = snapshot.child("CCurrentlng").getValue(Double.class);
+                                                String currentName = snapshot.child("CCurrentLocality").getValue().toString();
+                                                Double destinationLatitude = snapshot.child("CDestinationlat").getValue(Double.class);
+                                                Double destinationLongitude = snapshot.child("CDestinationlng").getValue(Double.class);
+                                                String destinationName = snapshot.child("CDestinationName").getValue().toString();
+
+                                                LatLng currentLocation1 = new LatLng(currentLatitude, currentLongitude);
+                                                LatLng destinationLocation1 = new LatLng(destinationLatitude, destinationLongitude);
+                                                if (myDestinationMarker != null) {
+                                                    myDestinationMarker.remove();
+                                                }
+                                                if (mMyCurrentLocMarker != null) {
+                                                    mMyCurrentLocMarker.remove();
+                                                }
+                                                MarkerOptions userMarker5 = new MarkerOptions().position(currentLocation1).title("Current Location " + currentName);
+                                                mMyCurrentLocMarker = mMap.addMarker(userMarker5);
+                                                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation1, DEFAULT_ZOOM));
+
+                                                MarkerOptions userMarker6 = new MarkerOptions().position(destinationLocation1).title(destinationName);
+                                                myDestinationMarker = mMap.addMarker(userMarker6);
+                                                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(destinationLocation1, DEFAULT_ZOOM));
+
+
+                                            }
+
+
+                                        }
+                                    }
+
+
+                                });
+
+                            }
+                        });
+                    }
+
+                }
+                //Toast.makeText(activity, "text" + psource, Toast.LENGTH_SHORT).show();
+
+
+
+            } catch (IOException | NullPointerException e) {
+                Log.e(TAG, "location2: IOException: " + e.getMessage());
+            }
+        }
         return  view;
     }
 

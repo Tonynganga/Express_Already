@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".LogInActivity"
     android:orientation="vertical"
-    android:background="#fff"
+    android:background="@color/background"
     android:padding="20dp">
 
     <ImageView
@@ -76,7 +76,7 @@
             android:layout_margin="5dp"
             android:background="#00000000"
             android:elevation="0dp"
-            android:text="FORGET PASSWORD?"
+            android:text="FORGOT PASSWORD?"
             android:textColor="#154257" />
 
         <Button

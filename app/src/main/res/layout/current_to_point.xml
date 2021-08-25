@@ -35,15 +35,15 @@
             android:src="@drawable/ic_downarrow" />
 
         <TextView
+            android:id="@+id/currentlocation"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/currentlocation"
-            android:text="Current Location: "
-            android:textSize="14sp"
-            android:textColor="@color/black"
-            android:gravity="center_vertical"
+            android:layout_centerVertical="true"
             android:layout_toRightOf="@id/ic_maginify"
-            android:layout_centerVertical="true"/>
+            android:gravity="center_vertical"
+            android:text="Current Location: "
+            android:textColor="@color/black"
+            android:textSize="14sp" />
     </RelativeLayout>
 
     <RelativeLayout
@@ -69,8 +69,7 @@
             android:id="@+id/edtdestinationcurrent"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"
+            android:layout_centerInParent="true"
             android:layout_toRightOf="@+id/ic_maginify2"
             android:background="@null"
             android:gravity="center_vertical"

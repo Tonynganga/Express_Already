@@ -44,8 +44,8 @@
             android:hint="Enter source City/Town"
             android:imeOptions="actionSearch"
             android:importantForAutofill="no"
-            android:textColor="#000"
-            android:textColorHint="#000"
+            android:textColor="#154257"
+            android:textColorHint="#154257"
             android:textSize="14sp" />
     </RelativeLayout>
 
@@ -72,14 +72,13 @@
             android:id="@+id/edtdestination"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"
+            android:layout_centerInParent="true"
             android:layout_toRightOf="@+id/ic_maginify2"
             android:background="@null"
             android:gravity="center_vertical"
             android:hint="Enter Destination City/Town"
-            android:textColor="@color/black"
-            android:textColorHint="@color/black"
+            android:textColor="#154257"
+            android:textColorHint="#154257"
             android:textSize="14sp" />
 
     </RelativeLayout>
@@ -106,25 +105,25 @@
         android:layout_marginTop="5dp"
         android:background="@drawable/btn_bg"
         android:text="Find Direction"
-        app:backgroundTint="#fff"
+        android:textColor="#154257"
         android:textSize="11sp"
-        android:textColor="#000" />
+        app:backgroundTint="#fff" />
 
     <TextView
         android:id="@+id/distance"
         android:layout_width="match_parent"
         android:layout_height="35dp"
-        android:textAlignment="center"
-        android:layout_centerVertical="true"
-        android:gravity="center_vertical"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="0dp"
+        android:layout_centerVertical="true"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="170dp"
-        android:textSize="18sp"
-        android:textColor="@color/black"
+        android:layout_marginBottom="0dp"
         android:background="@drawable/input_comment_bg"
+        android:gravity="center_vertical"
         android:text="Distance..Km."
+        android:textAlignment="center"
+        android:textColor="#154257"
+        android:textSize="18sp"
         tools:ignore="RtlCompat" />
 
 
